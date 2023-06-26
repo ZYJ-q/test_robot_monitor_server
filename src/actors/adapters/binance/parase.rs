@@ -12,6 +12,7 @@ pub async fn get_account_sub(
     name: &str,
     id: &u64,
     origin_balance: f64,
+    alarm: &str,
 ) -> Option<Sub> {
     if let Some(data) = http_api.account().await {
         let value: Value = serde_json::from_str(&data).unwrap();

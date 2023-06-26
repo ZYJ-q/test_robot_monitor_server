@@ -5,7 +5,7 @@ use mysql::*;
 
 use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts};
 
-use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi};
+use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi, get_account_bybit};
 
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
@@ -33,6 +33,31 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         }
     }
 
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "ByBit" => match value.r#type.as_str() {
+                "Futures" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(ByBitFuturesApi::new(
+                            "https://api.bybit.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+
+
+
+
+
+
     // 预备数据
     let mut data: http_data::AccountRe = http_data::AccountRe::new();
 
@@ -49,7 +74,30 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_account_sub(value, name, id, origin.parse().unwrap()).await;
+        let alarm = &traders.get(name).unwrap().show;
+        let res = get_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
+        match res {
+            Some(sub) => {
+                // equities += sub.total_equity.parse::<f64>().unwrap();
+                // equities_eth += sub.total_equity_eth.parse::<f64>().unwrap();
+                // origins += origin.parse::<f64>().unwrap();
+                // day_pnls += sub.day_pnl.parse::<f64>().unwrap();
+                // week_pnls += sub.week_pnl.parse::<f64>().unwrap();
+                subs.push(sub);
+            }
+            None => {
+                continue;
+            }
+        }
+    }
+
+
+    for (key, value) in &name_api {
+        let name = key;
+        let origin = &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let alarm = &traders.get(name).unwrap().show;
+        let res = get_account_bybit(value, name, id, origin.parse().unwrap(), &alarm).await;
         match res {
             Some(sub) => {
                 // equities += sub.total_equity.parse::<f64>().unwrap();
@@ -76,7 +124,76 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
     return data;
 }
 
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
+    println!("traders{:?}", traders);
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "ByBit" => match value.r#type.as_str() {
+                "Futures" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(ByBitFuturesApi::new(
+                            "https://api.bybit.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+
+
+
+
+
+
+    // 预备数据
+    let mut data: http_data::AccountRe = http_data::AccountRe::new();
+
+    // 合成account数据
+    let mut subs: Vec<http_data::Sub> = Vec::new();
+
+
+    for (key, value) in &name_api {
+        let name = key;
+        let origin = &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let alarm = &traders.get(name).unwrap().show;
+        let res = get_account_bybit(value, name, id, origin.parse().unwrap(), &alarm).await;
+        match res {
+            Some(sub) => {
+                // equities += sub.total_equity.parse::<f64>().unwrap();
+                // equities_eth += sub.total_equity_eth.parse::<f64>().unwrap();
+                // origins += origin.parse::<f64>().unwrap();
+                // day_pnls += sub.day_pnl.parse::<f64>().unwrap();
+                // week_pnls += sub.week_pnl.parse::<f64>().unwrap();
+                subs.push(sub);
+            }
+            None => {
+                continue;
+            }
+        }
+    }
+    data.subs = subs;
+    // data.total.time = date;
+    // data.total.equity_eth = equities_eth.to_string();
+    // data.total.net_worth = (equities / origins).to_string();
+    // data.total.net_worth_eth = (equities_eth / origins).to_string();
+    // data.total.equity = equities.to_string();
+    // data.total.day_pnl = day_pnls.to_string();
+    // data.total.week_pnl = week_pnls.to_string();
+    // 发送信息
+    return data;
+}
 
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
@@ -120,7 +237,8 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_account_sub(value, name, id, origin.parse().unwrap()).await;
+        let alarm = &traders.get(name).unwrap().show;
+        let res = get_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
         match res {
             Some(sub) => {
                 // equities += sub.total_equity.parse::<f64>().unwrap();

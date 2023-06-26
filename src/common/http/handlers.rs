@@ -141,6 +141,45 @@ pub async fn account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Res
     }
 }
 
+
+// 获取账户列表的权益杠杆率数据
+pub async fn bybit_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<Account>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    match database::get_traders(db_pool.clone()) {
+        Ok(traders) => {
+            let acct_re = actions::get_bybit_account_(traders).await;
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: acct_re,
+            }));
+        }
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
 // 获取单个账户的详情数据
 pub async fn single_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
