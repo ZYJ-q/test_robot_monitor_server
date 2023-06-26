@@ -119,19 +119,19 @@ pub async fn get_account_sub(
                     let price_obj = v.as_object().unwrap();
 
                     let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
-                    // let new_amt = position_amt * price;
-                    amts += position_amt;
-                    prices = price;
+                    let new_amt = position_amt * price;
+                    amts += new_amt;
+                    // prices = price;
                 }
             }
 
         }
-        let position = amts * prices;
+        // let position = amts * prices;
 
 
-        let leverage = position.abs() / new_total_equity; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
+        let leverage = amts.abs() / new_total_equity; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
         // println!("当前杠杆率{}", leverage);
-        let leverage_eth = position / total_wallet_balance;
+        let leverage_eth = amts.abs()/ total_wallet_balance;
 
         if let Some(data) = http_api.get_open_orders().await {
             let value: Value = serde_json::from_str(&data).unwrap();
@@ -149,7 +149,7 @@ pub async fn get_account_sub(
                 total_equity_eth: format!("{}", new_total_equity_eth),
                 leverage: format!("{}", leverage),
                 leverage_eth: format!("{}", leverage_eth),
-                position: format!("{}", position),
+                position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
                 net_worth: format!("{}", net_worth),
                 // day_transaction_price: format!("{}", day_transaction_price),
