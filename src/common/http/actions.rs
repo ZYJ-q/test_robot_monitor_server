@@ -12,7 +12,7 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+    // println!("traders{:?}", traders);
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
@@ -135,6 +135,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
+                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(

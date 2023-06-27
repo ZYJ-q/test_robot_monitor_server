@@ -182,6 +182,8 @@ impl HttpVenueApi for ByBitFuturesApi {
 
         let res_data = self.check_response_data(response);
 
+        println!("账户信息{:?}", res_data);
+
         match res_data {
             Some(data) => {
                 return Some(data);
