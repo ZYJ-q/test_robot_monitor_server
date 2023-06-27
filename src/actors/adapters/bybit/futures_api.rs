@@ -1,10 +1,11 @@
 use async_trait::async_trait;
+use base64::{engine::general_purpose, Engine as _};
 use chrono::{Utc, Local};
 use hex;
 use hmac::{Hmac, Mac};
 use itertools::Itertools;
 use log::error;
-use reqwest::header::HeaderMap;
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Method, Response, StatusCode};
 use serde_json::value::Value;
 use sha2::Sha256;
@@ -78,18 +79,22 @@ impl ByBitFuturesApi {
 
     let mut headers = HeaderMap::new();
     if need_sign {
-        let str_to_sign = format!("{}", &data_json);
-        // println!("{str_to_sign}");
+      let now_time = Utc::now().timestamp_millis();
 
-        let mut hmac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_bytes()).unwrap();
-        hmac.update(str_to_sign.as_bytes());
-        let sign_bytes = hmac.finalize().into_bytes();
-        let sign = hex::encode(sign_bytes);
+      let str_to_sign = format!("{}", data_json);
+      println!("str_to_sign{}", str_to_sign);
 
-        uri = format!("{}&signature={}", &uri, &sign);
-
-        headers.insert("X-MBX-APIKEY", self.api_key.parse().unwrap());
-        headers.insert("Content-Type", "application/json".parse().unwrap());
+      let mut hmac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_bytes()).unwrap();
+      hmac.update(str_to_sign.as_bytes());
+      let sign = hmac.finalize().into_bytes();
+          headers.insert(
+              "X-BAPI-SIGN",
+              HeaderValue::try_from(general_purpose::STANDARD.encode(sign)).unwrap(),
+          );
+          println!("sign{:?}", HeaderValue::try_from(general_purpose::STANDARD.encode(sign)).unwrap());
+          headers.insert("X-BAPI-TIMESTAMP", now_time.to_string().parse().unwrap());
+          headers.insert("X-BAPI-KEY", self.api_key.parse().unwrap());
+          headers.insert("X-BAPI-RECV-WINDOW", "2000".parse().unwrap());
     }
     headers.insert("User-Agent", "nautilus_alarm".parse().unwrap());
     let url = format!("{}{}", self.base_url, uri);
