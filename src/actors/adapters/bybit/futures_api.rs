@@ -1,176 +1,171 @@
 use async_trait::async_trait;
-use base64::{engine::general_purpose, Engine as _};
 use chrono::{Utc, Local};
 use hex;
 use hmac::{Hmac, Mac};
 use itertools::Itertools;
 use log::error;
-use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::header::HeaderMap;
 use reqwest::{Method, Response, StatusCode};
 use serde_json::value::Value;
 use sha2::Sha256;
 use std::collections::HashMap;
 
-
 use super::http::HttpClient;
 use super::base::venue_api::HttpVenueApi;
 
 pub struct ByBitFuturesApi {
-  client: HttpClient,
-  base_url: String,
-  api_key: String,
-  api_secret: String,
+    client: HttpClient,
+    base_url: String,
+    api_key: String,
+    api_secret: String,
 }
 
 impl ByBitFuturesApi {
-  pub fn new(base_url: &str, api_key: &str, api_secret: &str) -> Self {
-    let http_client = HttpClient::new();
-    Self {
-      client: http_client,
-      base_url: String::from(base_url),
-      api_key: String::from(api_key),
-      api_secret: String::from(api_secret),
-    }
-  }
-
-  async fn package_request(
-    &self,
-    method: &Method,
-    url: &str,
-    need_sign: bool,
-    params: &HashMap<String, Value>,
-) -> Option<Response> {
-    // env_logger::init();
-    let mut uri = String::from(url);
-    let mut data_json = String::new();
-
-    if method == Method::GET || method == Method::DELETE {
-        if !params.is_empty() {
-            let mut strl: Vec<String> = Vec::new();
-            for key in params.keys().sorted() {
-                let value = params.get(key).unwrap();
-                if value.is_string() {
-                    strl.push(format!("{}={}", key, value.as_str().unwrap()));
-                } else {
-                    strl.push(format!("{}={}", key, value));
-                }
-            }
-            for i in 0..strl.len() {
-                if i == 0 {
-                    data_json.push_str(&strl[i]);
-                } else {
-                    data_json.push('&');
-                    data_json.push_str(&strl[i]);
-                }
-            }
-            uri = format!("{}?{}", &uri, &data_json);
-        }
-    } else {
-        if !params.is_empty() {
-            match serde_json::to_string(&params) {
-                Ok(result) => data_json = result,
-                Err(e) => {
-                    error!("error on parase params: {}", e);
-                    return None;
-                }
-            }
+    pub fn new(base_url: &str, api_key: &str, api_secret: &str) -> Self {
+        let http_client = HttpClient::new();
+        Self {
+            client: http_client,
+            base_url: String::from(base_url),
+            api_key: String::from(api_key),
+            api_secret: String::from(api_secret),
         }
     }
 
-    let mut headers = HeaderMap::new();
-    if need_sign {
-      let now_time = Utc::now().timestamp_millis();
+    async fn package_request(
+        &self,
+        method: &Method,
+        url: &str,
+        need_sign: bool,
+        params: &HashMap<String, Value>,
+    ) -> Option<Response> {
+        // env_logger::init();
+        let mut uri = String::from(url);
+        let mut data_json = String::new();
 
-      let str_to_sign = format!("{}", data_json);
-      println!("str_to_sign{}", str_to_sign);
+        if method == Method::GET || method == Method::DELETE {
+            if !params.is_empty() {
+                let mut strl: Vec<String> = Vec::new();
+                for key in params.keys().sorted() {
+                    let value = params.get(key).unwrap();
+                    if value.is_string() {
+                        strl.push(format!("{}={}", key, value.as_str().unwrap()));
+                    } else {
+                        strl.push(format!("{}={}", key, value));
+                    }
+                }
+                for i in 0..strl.len() {
+                    if i == 0 {
+                        data_json.push_str(&strl[i]);
+                    } else {
+                        data_json.push('&');
+                        data_json.push_str(&strl[i]);
+                    }
+                }
+                uri = format!("{}?{}", &uri, &data_json);
+            }
+        } else {
+            if !params.is_empty() {
+                match serde_json::to_string(&params) {
+                    Ok(result) => data_json = result,
+                    Err(e) => {
+                        error!("error on parase params: {}", e);
+                        return None;
+                    }
+                }
+            }
+        }
 
-      let mut hmac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_bytes()).unwrap();
-      hmac.update(str_to_sign.as_bytes());
-      let sign = hmac.finalize().into_bytes();
-          headers.insert(
-              "X-BAPI-SIGN",
-              HeaderValue::try_from(general_purpose::STANDARD.encode(sign)).unwrap(),
-          );
-          println!("sign{:?}", HeaderValue::try_from(general_purpose::STANDARD.encode(sign)).unwrap());
-          headers.insert("X-BAPI-TIMESTAMP", now_time.to_string().parse().unwrap());
-          headers.insert("X-BAPI-KEY", self.api_key.parse().unwrap());
-          headers.insert("X-BAPI-RECV-WINDOW", "2000".parse().unwrap());
+        let mut headers = HeaderMap::new();
+        if need_sign {
+            let now_time = Utc::now().timestamp_millis();
+            println!("data_json{}", data_json);
+            let str_to_sign = format!("{}{}{}{}", now_time, self.api_key, 5000, &data_json);
+            // println!("{str_to_sign}");
+
+            let mut hmac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_bytes()).unwrap();
+            hmac.update(str_to_sign.as_bytes());
+            let sign_bytes = hmac.finalize().into_bytes();
+            let sign = hex::encode(sign_bytes);
+
+            // uri = format!("{}&signature={}", &uri, &sign);
+            headers.insert("X-BAPI-SIGN-TYPE", "2".parse().unwrap());
+            headers.insert("X-BAPI-SIGN", sign.parse().unwrap());
+            headers.insert("X-BAPI-API-KEY", self.api_key.parse().unwrap());
+            headers.insert("X-BAPI-TIMESTAMP", now_time.into());
+            headers.insert("X-BAPI-RECV-WINDOW", "5000".parse().unwrap());
+            headers.insert("Content-Type", "application/json; charset=utf-8".parse().unwrap());
+        }
+        headers.insert("User-Agent", "nautilus_alarm".parse().unwrap());
+        let url = format!("{}{}", self.base_url, uri);
+        // println!("{},{},{:?},{}", &method.as_str(), url, headers, data_json);
+        return self
+            .client
+            .send_request(&method.as_str(), &url, headers, &data_json)
+            .await;
     }
-    headers.insert("User-Agent", "nautilus_alarm".parse().unwrap());
-    let url = format!("{}{}", self.base_url, uri);
-    // println!("{},{},{:?},{}", &method.as_str(), url, headers, data_json);
-    return self
-        .client
-        .send_request(&method.as_str(), &url, headers, &data_json)
-        .await;
-  }
 
-
-  async fn send(
-    &self,
-    method: Method,
-    url: &str,
-    need_sign: bool,
-    params: &HashMap<String, Value>,
-) -> Option<String> {
-    // let data: HashMap<String, Value> = HashMap::new();
-    if let Some(response) = self.package_request(&method, url, need_sign, params).await {
-        if response.status() == StatusCode::OK {
-            match response.text().await {
-                Ok(response_data) => {
-                    return Some(response_data);
+    async fn send(
+        &self,
+        method: Method,
+        url: &str,
+        need_sign: bool,
+        params: &HashMap<String, Value>,
+    ) -> Option<String> {
+        // let data: HashMap<String, Value> = HashMap::new();
+        if let Some(response) = self.package_request(&method, url, need_sign, params).await {
+            if response.status() == StatusCode::OK {
+                match response.text().await {
+                    Ok(response_data) => {
+                        return Some(response_data);
+                    }
+                    Err(e) => {
+                        error!("error on parse response: {:?}", e);
+                        return None;
+                    }
                 }
-                Err(e) => {
-                    error!("error on parse response: {:?}", e);
-                    return None;
-                }
+            } else {
+                error!(
+                    "code status error: {}-{}",
+                    response.status(),
+                    response.text().await.unwrap()
+                );
+                return None;
             }
         } else {
             error!(
-                "code status error: {}-{}",
-                response.status(),
-                response.text().await.unwrap()
+                "none response: {},{},{},{:?}",
+                &method.as_str(),
+                url,
+                need_sign,
+                params
             );
             return None;
         }
-    } else {
-        error!(
-            "none response: {},{},{},{:?}",
-            &method.as_str(),
-            url,
-            need_sign,
-            params
-        );
-        return None;
     }
-}
 
-// todo
-fn check_response_data(&self, data_s: Option<String>) -> Option<String> {
-    match data_s {
-        Some(data) => {
-            if !data.is_empty() {
-                if data.contains("code") {
-                    error!("code: {}", data);
-                    return None;
+    // todo
+    fn check_response_data(&self, data_s: Option<String>) -> Option<String> {
+        match data_s {
+            Some(data) => {
+                if !data.is_empty() {
+                    if data.contains("code") {
+                        error!("code: {}", data);
+                        return None;
+                    } else {
+                        return Some(data);
+                    }
                 } else {
-                    return Some(data);
+                    error!("response is empty");
+                    return None;
                 }
-            } else {
-                error!("response is empty");
+            }
+            None => {
+                error!("handle response failed");
                 return None;
             }
         }
-        None => {
-            error!("handle response failed");
-            return None;
-        }
     }
-} 
 }
-
-
-
 
 #[async_trait]
 impl HttpVenueApi for ByBitFuturesApi {
@@ -178,16 +173,13 @@ impl HttpVenueApi for ByBitFuturesApi {
         let mut params: HashMap<String, Value> = HashMap::new();
 
         // let now_time = Utc::now().timestamp_millis();
-        let account_type = "UNIFIED";
-        params.insert(String::from("accountType"), Value::from(account_type));
+        params.insert(String::from("accountType"), Value::from("UNIFIED"));
 
         let response = self
             .send(Method::GET, "/v5/account/wallet-balance", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
-
-        println!("账户信息{:?}", res_data);
 
         match res_data {
             Some(data) => {
@@ -300,7 +292,7 @@ impl HttpVenueApi for ByBitFuturesApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v1/openOrders", true, &mut params)
+            .send(Method::GET, "/v5/order/realtime", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);

@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, Product, Trader, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, NetWorths, Equitys};
+use super::db_data::{Account, Active, Product, Trader, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::SignInProRes;
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -626,6 +626,39 @@ pub fn get_history_trades(
         // println!("获取历史交易数据account2{:?}", trades);
         return Ok(trades);
     }
+}
+
+
+// 获取权益数据
+pub fn get_bybit_equity(
+    pool: web::Data<Pool>,
+) -> Result<Vec<BybitEquity>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+        let equitys = conn.query_map(
+            "select * from  bybit_equity order by time",
+            |(id, name, time, equity)| {
+                BybitEquity{id, name, time, equity}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        return Ok(equitys);
+}
+
+// 获取bian权益数据
+pub fn get_bian_equity(
+    pool: web::Data<Pool>,
+) -> Result<Vec<BianEquity>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+        let equitys = conn.query_map(
+            "select * from  bian_equity_f order by time",
+            |(id, name, time, equity, r#type)| {
+                BianEquity{id, name, time, equity, r#type}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        return Ok(equitys);
 }
 
 // 获取持仓数据

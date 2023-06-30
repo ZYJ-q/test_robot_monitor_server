@@ -17,6 +17,7 @@ pub async fn get_account_bybit(
 ) -> Option<Sub> {
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
+      println!("bybit账户数据{}", value);
       
       let assets = value.as_object().unwrap().get("assets")
       .unwrap().as_array().unwrap();

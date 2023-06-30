@@ -97,6 +97,23 @@ pub struct Trade {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct BybitEquity {
+    pub id: u64,
+    pub name: String,
+    pub time: String,
+    pub equity: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BianEquity {
+    pub id: u64,
+    pub name: String,
+    pub time: String,
+    pub equity: String,
+    pub r#type: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Incomes {
     pub tra_id: u64,
     pub tra_venue: String,
