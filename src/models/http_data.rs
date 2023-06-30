@@ -1,3 +1,5 @@
+use std::string;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -54,6 +56,14 @@ pub struct Account {
     pub token: String
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccountEquity {
+    // pub prod_id: String,
+    pub r#type: String,
+    pub token: String,
+    pub name: String
+}
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SelectAccount {
     pub tra_id: String,

@@ -99,7 +99,7 @@ pub struct Trade {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BybitEquity {
     pub id: u64,
-    pub name: String,
+    pub name: u64,
     pub time: String,
     pub equity: String,
 }
@@ -107,7 +107,7 @@ pub struct BybitEquity {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BianEquity {
     pub id: u64,
-    pub name: String,
+    pub name: u64,
     pub time: String,
     pub equity: String,
     pub r#type: String,

@@ -4,7 +4,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -310,7 +310,7 @@ pub async fn get_bian_equity(mut payload: web::Payload, db_pool: web::Data<Pool>
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Account>(&body)?;
+    let obj = serde_json::from_slice::<AccountEquity>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -319,7 +319,7 @@ pub async fn get_bian_equity(mut payload: web::Payload, db_pool: web::Data<Pool>
         }
     }
 
-    let date =  database::get_bian_equity(db_pool.clone());
+    let date =  database::get_bian_equity(db_pool.clone(), &obj.name);
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {

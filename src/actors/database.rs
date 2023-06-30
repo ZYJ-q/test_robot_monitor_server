@@ -295,7 +295,7 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
     let mut conn = pool.get_conn().unwrap();
     let res = conn
     .exec_first(
-                r"select * from test_traders where name = :tra_id",
+                r"select * from test_traders where tra_id = :tra_id",
                 params! {
                         "tra_id" => tra_id
                         },
@@ -635,7 +635,7 @@ pub fn get_bybit_equity(
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
         let equitys = conn.query_map(
-            "select * from  bybit_equity order by time",
+            "select * from  bybit_equitys order by time",
             |(id, name, time, equity)| {
                 BybitEquity{id, name, time, equity}
             }
@@ -647,11 +647,13 @@ pub fn get_bybit_equity(
 // 获取bian权益数据
 pub fn get_bian_equity(
     pool: web::Data<Pool>,
+    name: &str
 ) -> Result<Vec<BianEquity>> {
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
+    let value = &format!("select * from bian_equity where name = {}", name);
         let equitys = conn.query_map(
-            "select * from  bian_equity_f order by time",
+            value,
             |(id, name, time, equity, r#type)| {
                 BianEquity{id, name, time, equity, r#type}
             }
