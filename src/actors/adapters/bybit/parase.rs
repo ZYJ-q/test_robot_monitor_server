@@ -19,8 +19,7 @@ pub async fn get_account_bybit(
       let value: Value = serde_json::from_str(&data).unwrap();
       println!("bybit账户数据{}", value);
       
-      let assets = value.as_object().unwrap().get("assets")
-      .unwrap().as_array().unwrap();
+      let assets = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
       let mut new_total_balance = 0.00;
       let mut new_total_equity = 0.00;
       let mut best_price = 0.00;
