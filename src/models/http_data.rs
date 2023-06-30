@@ -237,6 +237,19 @@ pub struct Sub {
     pub available_balance: String
 }
 
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ByBitSub {
+    pub id: String,
+    pub name: String,
+    pub net_worth: String,
+    pub total_equity: String,
+    pub leverage: String,
+    pub open_order_amt: String,
+    pub position: String,
+    pub available_balance: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AccountRe {
     // pub total: Total,
@@ -247,6 +260,21 @@ impl AccountRe {
     pub fn new() -> Self {
         Self {
             subs: Vec::new(),
+        }
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AccountByBitRe {
+    // pub total: Total,
+    pub bybit_subs: Vec<ByBitSub>,
+}
+
+impl AccountByBitRe {
+    pub fn new() -> Self {
+        Self {
+            bybit_subs: Vec::new(),
         }
     }
 }

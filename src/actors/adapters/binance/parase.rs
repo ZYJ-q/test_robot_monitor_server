@@ -133,7 +133,7 @@ pub async fn get_account_sub(
         // println!("当前杠杆率{}", leverage);
         let leverage_eth = amts.abs()/ total_wallet_balance;
 
-        if let Some(data) = http_api.get_open_orders().await {
+        if let Some(data) = http_api.get_open_orders("none").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             let open_orders = value.as_array().unwrap();
             let open_order = open_orders.len();
@@ -235,7 +235,7 @@ pub async fn get_open_orders(
     origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_open_orders: VecDeque<Value> = VecDeque::new();
-    if let Some(data) = http_api.get_open_orders().await {
+    if let Some(data) = http_api.get_open_orders("none").await {
         let value: Value = serde_json::from_str(&data).unwrap();
         // let mut history_positions: Vec<http_data::Position> = Vec::new();
         

@@ -295,7 +295,7 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
     let mut conn = pool.get_conn().unwrap();
     let res = conn
     .exec_first(
-                r"select * from test_traders where tra_id = :tra_id",
+                r"select * from test_traders where name = :tra_id",
                 params! {
                         "tra_id" => tra_id
                         },

@@ -238,14 +238,13 @@ impl HttpVenueApi for ByBitFuturesApi {
         }
     }
 
-    async fn position(&self) -> Option<String> {
+    async fn position(&self, category: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
-
-        let now_time = Utc::now().timestamp_millis();
-        params.insert(String::from("timestamp"), Value::from(now_time));
+        params.insert(String::from("category"), Value::from(category));
+        params.insert(String::from("settleCoin"), Value::from("USDT"));
 
         let response = self
-            .send(Method::GET, "/fapi/v2/positionRisk", true, &mut params)
+            .send(Method::GET, "/5/position/list", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
@@ -285,11 +284,11 @@ impl HttpVenueApi for ByBitFuturesApi {
     }
 
     // 获取当前挂单
-    async fn get_open_orders(&self) -> Option<String> {
+    async fn get_open_orders(&self, category: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
-        let now_time = Utc::now().timestamp_millis();
-        params.insert(String::from("timestamp"), Value::from(now_time));
+        params.insert(String::from("category"), Value::from(category));
+        params.insert(String::from("settleCoin"), Value::from("USDT"));
 
         let response = self
             .send(Method::GET, "/v5/order/realtime", true, &mut params)

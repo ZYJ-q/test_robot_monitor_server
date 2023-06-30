@@ -78,7 +78,7 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
 }
 
 #[warn(dead_code, unused_variables, unused_mut)]
-pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
+pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountByBitRe {
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
@@ -111,10 +111,10 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
 
 
     // 预备数据
-    let mut data: http_data::AccountRe = http_data::AccountRe::new();
+    let mut data: http_data::AccountByBitRe = http_data::AccountByBitRe::new();
 
     // 合成account数据
-    let mut subs: Vec<http_data::Sub> = Vec::new();
+    let mut subs: Vec<http_data::ByBitSub> = Vec::new();
 
 
     for (key, value) in &name_api {
@@ -137,7 +137,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
             }
         }
     }
-    data.subs = subs;
+    data.bybit_subs = subs;
     // data.total.time = date;
     // data.total.equity_eth = equities_eth.to_string();
     // data.total.net_worth = (equities / origins).to_string();

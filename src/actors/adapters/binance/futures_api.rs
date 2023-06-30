@@ -233,7 +233,7 @@ impl HttpVenueApi for BinanceFuturesApi {
         }
     }
 
-    async fn position(&self) -> Option<String> {
+    async fn position(&self, category: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
         let now_time = Utc::now().timestamp_millis();
@@ -280,7 +280,7 @@ impl HttpVenueApi for BinanceFuturesApi {
     }
 
     // 获取当前挂单
-    async fn get_open_orders(&self) -> Option<String> {
+    async fn get_open_orders(&self, category: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
         let now_time = Utc::now().timestamp_millis();
