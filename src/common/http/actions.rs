@@ -33,31 +33,6 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         }
     }
 
-    for (key, value) in &traders {
-        match value.tra_venue.as_str() {
-            "ByBit" => match value.r#type.as_str() {
-                "Futures" => {
-                    name_api.insert(
-                        String::from(key),
-                        Box::new(ByBitFuturesApi::new(
-                            "https://api.bybit.com",
-                            &value.api_key,
-                            &value.secret_key,
-                        )),
-                    );
-                }
-                _ => {}
-            },
-            _ => {}
-        }
-    }
-
-
-
-
-
-
-
     // 预备数据
     let mut data: http_data::AccountRe = http_data::AccountRe::new();
 

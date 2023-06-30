@@ -16,7 +16,7 @@ pub async fn get_account_sub(
 ) -> Option<Sub> {
     if let Some(data) = http_api.account().await {
         let value: Value = serde_json::from_str(&data).unwrap();
-        // println!("账户信息{}", value);
+        // println!("账户信息binance{}", value);
         let assets = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
         let mut new_total_balance = 0.00;
         let mut new_total_equity = 0.00;
