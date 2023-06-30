@@ -18,6 +18,9 @@ pub async fn get_account_sub(
         let value: Value = serde_json::from_str(&data).unwrap();
         // println!("账户信息binance{}", value);
         let assets = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
+        if name == "trader02" {
+            println!(" 账户数据{:?}", assets);
+        }
         let mut new_total_balance = 0.00;
         let mut new_total_equity = 0.00;
         let mut best_price = 0.00;
@@ -25,6 +28,8 @@ pub async fn get_account_sub(
             let obj = a.as_object().unwrap();
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
+
+            
 
             if wallet_balance != 0.00 {
                 if symbol == "ETH" {

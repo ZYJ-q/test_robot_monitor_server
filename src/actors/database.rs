@@ -386,7 +386,6 @@ pub fn get_trader_incomes(pool: web::Data<Pool>) -> Result<HashMap<String, Trade
 
 
 // 获取账户划转记录
-
 pub fn get_history_incomes(
     pool: web::Data<Pool>,
     tra_id: &str
