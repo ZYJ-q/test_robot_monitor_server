@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, Product, Trader, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, Product, Trader, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::SignInProRes;
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -627,6 +627,34 @@ pub fn get_history_trades(
     }
 }
 
+// 获取前1000条订单成交数据bybit
+pub fn get_history_bybit_trades(
+    pool: web::Data<Pool>,
+    tra_id: &str
+) -> Result<Vec<BybitTrade>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    if tra_id == "account11" {
+        let trades = conn.query_map(
+            "select * from bybit_trader_histories order by tra_time desc limit 1000",
+            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
+                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        return Ok(trades);
+    } else {
+        let trades = conn.query_map(
+            "select * from bybit_trader_histories order by tra_time desc limit 1000",
+            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
+                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        return Ok(trades);
+    }
+}
+
 
 // 获取权益数据
 pub fn get_bybit_equity(
@@ -876,6 +904,41 @@ pub fn get_date_history_trades(
             value,
             |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
                 Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    }
+    
+}
+
+
+
+// 根据日期获取bybit账户交易历史的数据
+pub fn get_date_bybit_history_trades(
+    pool: web::Data<Pool>,
+    start_time: &str,
+    end_time: &str,
+    tra_id: &str
+) -> Result<Vec<BybitTrade>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    if tra_id == "mmteam1" {
+        let value = &format!("select * from bybit_trader_histories where tra_time >= {} and tra_time <= {}", start_time, end_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
+                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else {
+        let value = &format!("select * from bybit_trader_histories where tra_time >= {} and tra_time <= {}", start_time, end_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
+                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side}
             }
             ).unwrap();
         // println!("获取历史交易数据account3{:?}", trades);
