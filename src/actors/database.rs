@@ -636,7 +636,7 @@ pub fn get_history_bybit_trades(
     // let mut re: Vec<Trade> = Vec::new();
     if tra_id == "account11" {
         let trades = conn.query_map(
-            "select * from bybit_trader_histories order by tra_time desc limit 1000",
+            "select * from bybit_trader_histories order by time desc limit 1000",
             |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
                 BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
             }
@@ -645,7 +645,7 @@ pub fn get_history_bybit_trades(
         return Ok(trades);
     } else {
         let trades = conn.query_map(
-            "select * from bybit_trader_histories order by tra_time desc limit 1000",
+            "select * from bybit_trader_histories order by time desc limit 1000",
             |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
                 BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
             }
