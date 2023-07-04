@@ -924,7 +924,7 @@ pub fn get_date_bybit_history_trades(
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
     if tra_id == "mmteam1" {
-        let value = &format!("select * from bybit_trader_histories where tra_time >= {} and tra_time <= {}", start_time, end_time);
+        let value = &format!("select * from bybit_trader_histories where time >= {} and time <= {}", start_time, end_time);
         let trades = conn.query_map(
             value,
             |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
@@ -934,7 +934,7 @@ pub fn get_date_bybit_history_trades(
         // println!("获取历史交易数据account3{:?}", trades);
         return Ok(trades);
     } else {
-        let value = &format!("select * from bybit_trader_histories where tra_time >= {} and tra_time <= {}", start_time, end_time);
+        let value = &format!("select * from bybit_trader_histories where time >= {} and time <= {}", start_time, end_time);
         let trades = conn.query_map(
             value,
             |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
