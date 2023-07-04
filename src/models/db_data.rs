@@ -99,9 +99,9 @@ pub struct Trade {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BybitTrade {
-    pub th_id: u64,
+    pub th_id: String,
     pub symbol: String,
-    pub tra_order_id: u64,
+    pub tra_order_id: String,
     pub commission: String,
     pub time: u64,
     pub price: String,
