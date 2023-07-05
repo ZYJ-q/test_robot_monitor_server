@@ -248,6 +248,7 @@ impl HttpVenueApi for ByBitFuturesApi {
             .await;
 
         let res_data = self.check_response_data(response);
+        println!("仓位数据原始{:?}", res_data);
 
         match res_data {
             Some(data) => {
@@ -295,6 +296,7 @@ impl HttpVenueApi for ByBitFuturesApi {
             .await;
 
         let res_data = self.check_response_data(response);
+        println!("挂单数据原始{:?}", res_data);
 
         match res_data {
             Some(data) => {
