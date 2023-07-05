@@ -313,15 +313,8 @@ impl HttpVenueApi for ByBitFuturesApi {
     async fn get_income(&self) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
-        let dt = Local::now().timestamp_millis();
-        let last_day = dt - 1000*60*60*24 * 8;
-
-        let now_time = Utc::now().timestamp_millis();
-        params.insert(String::from("timestamp"), Value::from(now_time));
-        params.insert(String::from("startTime"), Value::from(last_day));
-
         let response = self
-            .send(Method::GET, "/sapi/v1/futures/transfer", true, &mut params)
+            .send(Method::GET, "/v5/asset/transfer/query-inter-transfer-list", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
