@@ -637,8 +637,8 @@ pub fn get_history_bybit_trades(
     if tra_id == "account11" {
         let trades = conn.query_map(
             "select * from bybit_trader_histories order by time desc limit 1000",
-            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
-                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
+            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission, r#type)| {
+                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
@@ -646,8 +646,8 @@ pub fn get_history_bybit_trades(
     } else {
         let trades = conn.query_map(
             "select * from bybit_trader_histories order by time desc limit 1000",
-            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission)| {
-                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission}
+            |(th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission, r#type)| {
+                BybitTrade{th_id, symbol, tra_order_id, qty, quote_qty, time, side, price, commission, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
@@ -927,8 +927,8 @@ pub fn get_date_bybit_history_trades(
         let value = &format!("select * from bybit_trader_histories where time >= {} and time <= {}", start_time, end_time);
         let trades = conn.query_map(
             value,
-            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
-                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side}
+            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side, r#type)| {
+                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account3{:?}", trades);
@@ -937,8 +937,8 @@ pub fn get_date_bybit_history_trades(
         let value = &format!("select * from bybit_trader_histories where time >= {} and time <= {}", start_time, end_time);
         let trades = conn.query_map(
             value,
-            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side)| {
-                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side}
+            |(th_id, symbol, tra_order_id, commission, time, price, qty, quote_qty, side, r#type)| {
+                BybitTrade{th_id, symbol, tra_order_id, commission, time,  price, qty, quote_qty, side, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account3{:?}", trades);
