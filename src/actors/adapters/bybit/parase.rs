@@ -37,6 +37,7 @@ pub async fn get_account_bybit(
 
      
       if let Some(data) = http_api.position(category_lear).await {
+        println!("持仓数据{}", data);
         let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
         let positions = result.get("list").unwrap().as_array().unwrap();
       // let mut position: f64 = 0.0;
@@ -56,6 +57,7 @@ pub async fn get_account_bybit(
       let leverage = amts.abs() / equity; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
 
       if let Some(data) = http_api.get_open_orders(category_lear).await {
+        println!("挂单数据{}", data);
           let value: Value = serde_json::from_str(&data).unwrap();
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
           let list = result.get("list").unwrap().as_array().unwrap();
