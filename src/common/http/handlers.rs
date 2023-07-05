@@ -168,7 +168,7 @@ pub async fn bybit_account(mut payload: web::Payload, db_pool: web::Data<Pool>) 
     match database::get_traders(db_pool.clone()) {
         Ok(traders) => {
             let acct_re = actions::get_bybit_account_(traders).await;
-            // println!("{:#?}", traders);
+            // println!("{:?}", acct_re);
             return Ok(HttpResponse::Ok().json(Response {
                 status: 200,
                 data: acct_re,

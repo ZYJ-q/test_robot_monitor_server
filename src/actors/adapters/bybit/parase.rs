@@ -61,7 +61,7 @@ pub async fn get_account_bybit(
           let list = result.get("list").unwrap().as_array().unwrap();
           let open_order = list.len();
 
-          println!("当前挂单数量:{}, name:{}", open_order, name);
+          println!("权益{}, 杠杆率{}, 净头寸{}, 挂单数量{}, 净值{}, 可用余额{}", equity, leverage, amts, open_order, net_worth, wallet_balance);
 
           return Some(ByBitSub {
               id: String::from(id.to_string()),

@@ -123,8 +123,10 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().show;
         let res = get_account_bybit(value, name, id, origin.parse().unwrap(), &alarm).await;
+        
         match res {
             Some(sub) => {
+                
                 // equities += sub.total_equity.parse::<f64>().unwrap();
                 // equities_eth += sub.total_equity_eth.parse::<f64>().unwrap();
                 // origins += origin.parse::<f64>().unwrap();
@@ -146,6 +148,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
     // data.total.day_pnl = day_pnls.to_string();
     // data.total.week_pnl = week_pnls.to_string();
     // 发送信息
+
     return data;
 }
 
