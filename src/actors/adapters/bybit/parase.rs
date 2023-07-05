@@ -137,7 +137,7 @@ pub async fn get_futures_bybit_positions(
           let entry_price = obj.get("avgPrice").unwrap().as_str().unwrap();
           let leverage = obj.get("leverage").unwrap().as_str().unwrap();
           let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
-          let unrealized_profit = obj.get("unrealizedPnl").unwrap().as_str().unwrap();
+          let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
 
           pos_obj.insert(String::from("symbol"), Value::from(symbol));
           pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
@@ -196,7 +196,7 @@ pub async fn get_spot_bybit_positions(
           let entry_price = obj.get("avgPrice").unwrap().as_str().unwrap();
           let leverage = obj.get("leverage").unwrap().as_str().unwrap();
           let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
-          let unrealized_profit = obj.get("unrealizedPnl").unwrap().as_str().unwrap();
+          let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
 
           pos_obj.insert(String::from("symbol"), Value::from(symbol));
           pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
@@ -373,7 +373,7 @@ pub async fn get_bybit_history_accounts(
           } else {
               let symbol = objs.get("coin").unwrap().as_str().unwrap();
           let wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
-          let unrealized_profit = objs.get("unrealizedPnl").unwrap().as_str().unwrap();
+          let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
           let margin_balance = objs.get("usdValue").unwrap().as_str().unwrap();
           let available_balance = objs.get("availableToWithdraw").unwrap().as_str().unwrap();
 
