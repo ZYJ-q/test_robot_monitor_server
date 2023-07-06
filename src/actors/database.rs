@@ -898,6 +898,16 @@ pub fn get_date_history_trades(
             ).unwrap();
         // println!("获取历史交易数据account3{:?}", trades);
         return Ok(trades);
+    } else if tra_id == "pca01" {
+        let value = &format!("select * from trade_pca01 where tra_time >= {} and tra_time <= {}", start_time, end_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
     } else {
         let value = &format!("select * from trade_histories_2 where tra_time >= {} and tra_time <= {}", start_time, end_time);
         let trades = conn.query_map(
