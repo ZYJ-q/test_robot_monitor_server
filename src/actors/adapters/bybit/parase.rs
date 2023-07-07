@@ -62,8 +62,9 @@ pub async fn get_account_bybit(
           let obj = p.as_object().unwrap();
           println!("持仓数量{}", spot_position);
           let position_amt: f64 = obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
+          let pos = position_amt + spot_position;
           let price: f64 = obj.get("markPrice").unwrap().as_str().unwrap().parse().unwrap();
-          let pos_price = position_amt * price;
+          let pos_price = pos * price;
           amts += pos_price;
       }
       // let position = amts * prices;
@@ -218,54 +219,58 @@ pub async fn get_spot_bybit_positions(
   origin_balance: f64,
 ) -> Vec<Value> {
       let category_lear = "spot";
-  let mut history_positions: VecDeque<Value> = VecDeque::new();
-  if let Some(data) = http_api.position(category_lear).await {
-      let value: Value = serde_json::from_str(&data).unwrap();
-      // let mut history_positions: Vec<http_data::Position> = Vec::new();
-      // println!("bybit现货仓位数据{:?}", value);
-      let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
-      let list = result.get("list").unwrap().as_array().unwrap();
-      for p in list {
-          let mut pos_obj: Map<String, Value> = Map::new();
-          let obj = p.as_object().unwrap();
-          let amt:f64= obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
-          if amt == 0.0 {
-              continue;
-          } else {
-              let symbol = obj.get("symbol").unwrap().as_str().unwrap();
-          let millis: i64 = obj.get("updatedTime").unwrap().as_str().unwrap().parse().unwrap();
-          let datetime: DateTime<Utc> = DateTime::from_utc(
-              NaiveDateTime::from_timestamp_millis(millis).unwrap(),
-              Utc,
-          );
-          let position_amt= obj.get("size").unwrap().as_str().unwrap();
-          // info!("datetime: {}", datetime);
-          let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
-          let position_side = obj.get("side").unwrap().as_str().unwrap();
-          let entry_price = obj.get("avgPrice").unwrap().as_str().unwrap();
-          let leverage = obj.get("leverage").unwrap().as_str().unwrap();
-          let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
-          let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
-
-          pos_obj.insert(String::from("symbol"), Value::from(symbol));
-          pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
-          pos_obj.insert(String::from("time"), Value::from(time));
-          pos_obj.insert(String::from("position_side"), Value::from(position_side));
-          pos_obj.insert(String::from("entry_price"), Value::from(entry_price));
-          pos_obj.insert(String::from("leverage"), Value::from(leverage));
-          pos_obj.insert(String::from("mark_price"), Value::from(mark_price));
-          pos_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
-          // 新加的
-          pos_obj.insert(String::from("id"), Value::from(id.to_string()));
-
-          history_positions.push_back(Value::from(pos_obj));
+      let mut history_assets: VecDeque<Value> = VecDeque::new();
+      if let Some(data) = http_api.account().await {
+          let value: Value = serde_json::from_str(&data).unwrap();
+          // let mut history_positions: Vec<http_data::Position> = Vec::new();
+          let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
+          let list = result.get("list").unwrap().as_array().unwrap();
+          
+          
+          for p in list {
+              let obj = p.as_object().unwrap();
+              let assets = obj.get("coin").unwrap().as_array().unwrap();
+              for c in assets {
+                let mut asset_obj: Map<String, Value> = Map::new();
+                let objs = c.as_object().unwrap();
+                let amt:f64= objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                let mut wallet_balance = "";
+              if amt == 0.0 {
+                  continue;
+              } else {
+                  let symbol = objs.get("coin").unwrap().as_str().unwrap();
+                  let symbols = format!("{}USDT-SPOT", symbol);
+                  if symbol == "ETH" {
+                    wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
+                  }
+                  let now_time = Utc::now().timestamp_millis();
+                  let datetime: DateTime<Utc> = DateTime::from_utc(
+                    NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
+                    Utc,
+                );
+                // info!("datetime: {}", datetime);
+                let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+    
+              asset_obj.insert(String::from("symbol"), Value::from(symbols));
+              asset_obj.insert(String::from("position_amt"), Value::from(wallet_balance));
+              asset_obj.insert(String::from("time"), Value::from(time));
+              asset_obj.insert(String::from("position_side"), Value::from("-"));
+              asset_obj.insert(String::from("entry_price"), Value::from("-"));
+              asset_obj.insert(String::from("leverage"), Value::from("-"));
+              asset_obj.insert(String::from("mark_price"), Value::from("-"));
+              asset_obj.insert(String::from("unrealized_profit"), Value::from("-"));
+              // 新加的
+              asset_obj.insert(String::from("id"), Value::from(id.to_string()));
+    
+              history_assets.push_back(Value::from(asset_obj));
+              }
+              }
           }
+              return history_assets.into();
+      } else {
+          error!("Can't get {} account.", name);
+          return history_assets.into();
       }
-          return history_positions.into();
-  } else {
-      error!("Can't get {} account.", name);
-      return history_positions.into();
-  }
 }
 
 
