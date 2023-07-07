@@ -17,6 +17,7 @@ pub async fn get_account_bybit(
 ) -> Option<ByBitSub> {
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
+      let mut spot_position = 0.0;
       
       let assets = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = assets.get("list").unwrap().as_array().unwrap();
@@ -26,7 +27,18 @@ pub async fn get_account_bybit(
           let obj = a.as_object().unwrap();
           wallet_balance = obj.get("totalWalletBalance").unwrap().as_str().unwrap();
           equity = obj.get("totalEquity").unwrap().as_str().unwrap().parse().unwrap();
-
+          let assets = obj.get("coin").unwrap().as_array().unwrap();
+          for c in assets {
+              let mut asset_obj: Map<String, Value> = Map::new();
+              let objs = c.as_object().unwrap();
+              let amt:f64= objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = objs.get("coin").unwrap().as_str().unwrap();
+                spot_position = objs.get("availableToWithdraw").unwrap().as_str().unwrap().parse().unwrap();
+            }
+         }
       }
 
       let net_worth = equity / origin_balance;
@@ -46,8 +58,7 @@ pub async fn get_account_bybit(
       // let mut short_position: f64 = 0.0;
       for p in positions {
           let obj = p.as_object().unwrap();
-          let po = obj.get("size").unwrap().as_str().unwrap();
-          // println!("持仓数量{}", po);
+          println!("持仓数量{}", spot_position);
           let position_amt: f64 = obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
           let price: f64 = obj.get("markPrice").unwrap().as_str().unwrap().parse().unwrap();
           let pos_price = position_amt * price;
@@ -159,6 +170,7 @@ pub async fn get_futures_bybit_positions(
               continue;
           } else {
               let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+              let furture_symbol = format!("{}-PREP", symbol);
           let millis: i64 = obj.get("updatedTime").unwrap().as_str().unwrap().parse().unwrap();
           let datetime: DateTime<Utc> = DateTime::from_utc(
               NaiveDateTime::from_timestamp_millis(millis).unwrap(),
@@ -173,7 +185,7 @@ pub async fn get_futures_bybit_positions(
           let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
           let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
 
-          pos_obj.insert(String::from("symbol"), Value::from(symbol));
+          pos_obj.insert(String::from("symbol"), Value::from(furture_symbol));
           pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
           pos_obj.insert(String::from("time"), Value::from(time));
           pos_obj.insert(String::from("position_side"), Value::from(position_side));
@@ -287,6 +299,7 @@ pub async fn get_bybit_futures_open_orders(
               let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
               
               let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+              let furtures_symbol = format!("{}-PREP", symbol);
               let r#type = obj.get("orderType").unwrap().as_str().unwrap();
               let mut type_value = "";
               if r#type == "Limit" {
@@ -301,7 +314,7 @@ pub async fn get_bybit_futures_open_orders(
               let reduce_only = obj.get("reduceOnly").unwrap().as_bool().unwrap();
               open_order_object.insert(String::from("time"), Value::from(time.clone()));
               open_order_object.insert(String::from("name"), Value::from(name));
-              open_order_object.insert(String::from("symbol"), Value::from(symbol));
+              open_order_object.insert(String::from("symbol"), Value::from(furtures_symbol));
               open_order_object.insert(String::from("type"), Value::from(type_value));
               open_order_object.insert(String::from("side"), Value::from(side));
               open_order_object.insert(String::from("price"), Value::from(price));
@@ -350,6 +363,7 @@ pub async fn get_bybit_spot_open_orders(
               let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
               
               let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+              let spot_symbol = format!("{}-SPOT", symbol);
               let r#type = obj.get("orderType").unwrap().as_str().unwrap();
               let mut type_value = "";
               if r#type == "Limit" {
@@ -364,7 +378,7 @@ pub async fn get_bybit_spot_open_orders(
               let reduce_only = obj.get("reduceOnly").unwrap().as_bool().unwrap();
               open_order_object.insert(String::from("time"), Value::from(time.clone()));
               open_order_object.insert(String::from("name"), Value::from(name));
-              open_order_object.insert(String::from("symbol"), Value::from(symbol));
+              open_order_object.insert(String::from("symbol"), Value::from(spot_symbol));
               open_order_object.insert(String::from("type"), Value::from(type_value));
               open_order_object.insert(String::from("side"), Value::from(side));
               open_order_object.insert(String::from("price"), Value::from(price));
