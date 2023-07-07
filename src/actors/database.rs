@@ -663,7 +663,7 @@ pub fn get_bybit_equity(
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
         let equitys = conn.query_map(
-            "select * from  bybit_equitys order by time",
+            "select * from  bybit_equitys",
             |(id, name, time, equity)| {
                 BybitEquity{id, name, time, equity}
             }
