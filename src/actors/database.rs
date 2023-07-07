@@ -669,6 +669,7 @@ pub fn get_bybit_equity(
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
+        println!("equity权益数据{:?}", equitys);
         return Ok(equitys);
 }
 
@@ -687,6 +688,7 @@ pub fn get_bian_equity(
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
+        println!("bian权益数据{:?}", equitys);
         return Ok(equitys);
 }
 
