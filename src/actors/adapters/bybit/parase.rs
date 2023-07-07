@@ -67,19 +67,50 @@ pub async fn get_account_bybit(
 
           println!("权益{}, 杠杆率{}, 净头寸{}, 挂单数量{}, 净值{}, 可用余额{}", equity, leverage, amts, open_order, net_worth, wallet_balance);
 
-          return Some(ByBitSub {
-              id: String::from(id.to_string()),
-              name: String::from(name),
-              total_equity: format!("{}", equity),
-              leverage: format!("{}", leverage),
-              position: format!("{}", amts),
-              open_order_amt: format!("{}", open_order),
-              net_worth: format!("{}", net_worth),
-              available_balance: format!("{}", wallet_balance),
-          });
+
+          if let Some(data) = http_api.get_open_orders(category_spot).await {
+            println!("挂单数据{}", data);
+              let value: Value = serde_json::from_str(&data).unwrap();
+              let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
+              let list = result.get("list").unwrap().as_array().unwrap();
+              let open_order_spot = list.len();
+              let open_orders = open_order + open_order_spot;
+    
+              return Some(ByBitSub {
+                  id: String::from(id.to_string()),
+                  name: String::from(name),
+                  total_equity: format!("{}", equity),
+                  leverage: format!("{}", leverage),
+                  position: format!("{}", amts),
+                  open_order_amt: format!("{}", open_orders),
+                  net_worth: format!("{}", net_worth),
+                  available_balance: format!("{}", wallet_balance),
+              });
+          } else {
+              error!("Can't get {} openOrders.", name);
+              return Some(ByBitSub {
+                id: String::from(id.to_string()),
+                name: String::from(name),
+                total_equity: format!("{}", equity),
+                leverage: format!("{}", leverage),
+                position: format!("{}", amts),
+                open_order_amt: format!("{}", open_order),
+                net_worth: format!("{}", net_worth),
+                available_balance: format!("{}", wallet_balance),
+            });      
+          }
       } else {
           error!("Can't get {} openOrders.", name);
-          None   
+          return Some(ByBitSub {
+            id: String::from(id.to_string()),
+            name: String::from(name),
+            total_equity: format!("{}", equity),
+            leverage: format!("{}", leverage),
+            position: format!("{}", amts),
+            open_order_amt: format!("{}", 0),
+            net_worth: format!("{}", net_worth),
+            available_balance: format!("{}", wallet_balance),
+        });   
       }
     } else {
         error!("Can't get {} position.", name);
