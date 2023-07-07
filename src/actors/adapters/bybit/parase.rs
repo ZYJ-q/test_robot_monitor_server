@@ -242,6 +242,7 @@ pub async fn get_spot_bybit_positions(
                   let symbols = format!("{}USDT-SPOT", symbol);
                   if symbol == "ETH" {
                     wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
+                    let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
                     let now_time = Utc::now().timestamp_millis();
                   let datetime: DateTime<Utc> = DateTime::from_utc(
                     NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
@@ -257,7 +258,7 @@ pub async fn get_spot_bybit_positions(
               asset_obj.insert(String::from("entry_price"), Value::from("-"));
               asset_obj.insert(String::from("leverage"), Value::from("-"));
               asset_obj.insert(String::from("mark_price"), Value::from("-"));
-              asset_obj.insert(String::from("unrealized_profit"), Value::from("-"));
+              asset_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
               // 新加的
               asset_obj.insert(String::from("id"), Value::from(id.to_string()));
     
