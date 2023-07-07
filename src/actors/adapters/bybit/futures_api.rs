@@ -244,7 +244,7 @@ impl HttpVenueApi for ByBitFuturesApi {
         params.insert(String::from("settleCoin"), Value::from("USDT"));
 
         let response = self
-            .send(Method::GET, "/5/position/list", true, &mut params)
+            .send(Method::GET, "/v5/position/list", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);

@@ -17,7 +17,6 @@ pub async fn get_account_bybit(
 ) -> Option<ByBitSub> {
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
-      println!("bybit账户数据{}", value);
       
       let assets = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = assets.get("list").unwrap().as_array().unwrap();
@@ -77,7 +76,16 @@ pub async fn get_account_bybit(
           });
       } else {
           error!("Can't get {} openOrders.", name);
-      return None;
+        return Some(ByBitSub {
+        id: String::from(id.to_string()),
+        name: String::from(name),
+        total_equity: format!("{}", equity),
+        leverage: format!("{}", leverage),
+        position: format!("{}", amts),
+        open_order_amt: format!("{}", 0),
+        net_worth: format!("{}", net_worth),
+        available_balance: format!("{}", wallet_balance),
+    });
           
       }
     } else {
@@ -115,6 +123,8 @@ pub async fn get_futures_bybit_positions(
   if let Some(data) = http_api.position(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
+      println!("bybit账户仓位数据{:?}", value);
+
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = result.get("list").unwrap().as_array().unwrap();
       for p in list {
@@ -232,6 +242,7 @@ pub async fn get_bybit_futures_open_orders(
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
   if let Some(data) = http_api.get_open_orders(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
+      println!("bybit挂单数据{:?}", value);
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let open_orders = result.get("list").unwrap().as_array().unwrap();
