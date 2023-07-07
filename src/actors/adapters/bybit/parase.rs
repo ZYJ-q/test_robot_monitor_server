@@ -242,8 +242,7 @@ pub async fn get_spot_bybit_positions(
                   let symbols = format!("{}USDT-SPOT", symbol);
                   if symbol == "ETH" {
                     wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
-                  }
-                  let now_time = Utc::now().timestamp_millis();
+                    let now_time = Utc::now().timestamp_millis();
                   let datetime: DateTime<Utc> = DateTime::from_utc(
                     NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
                     Utc,
@@ -263,6 +262,8 @@ pub async fn get_spot_bybit_positions(
               asset_obj.insert(String::from("id"), Value::from(id.to_string()));
     
               history_assets.push_back(Value::from(asset_obj));
+                  }
+                  
               }
               }
           }
