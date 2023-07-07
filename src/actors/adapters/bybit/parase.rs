@@ -36,7 +36,9 @@ pub async fn get_account_bybit(
                 continue;
             } else {
                 let symbol = objs.get("coin").unwrap().as_str().unwrap();
-                spot_position = objs.get("availableToWithdraw").unwrap().as_str().unwrap().parse().unwrap();
+                if symbol == "ETH"{
+                  spot_position = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                }   
             }
          }
       }
