@@ -76,15 +76,15 @@ pub async fn get_account_bybit(
           });
       } else {
           error!("Can't get {} openOrders.", name);
-        return Some(ByBitSub {
-        id: String::from(id.to_string()),
-        name: String::from(name),
-        total_equity: format!("{}", equity),
-        leverage: format!("{}", leverage),
-        position: format!("{}", amts),
-        open_order_amt: format!("{}", 0),
-        net_worth: format!("{}", net_worth),
-        available_balance: format!("{}", wallet_balance),
+          return Some(ByBitSub {
+            id: String::from(id.to_string()),
+            name: String::from(name),
+            total_equity: format!("{}", equity),
+            leverage: format!("{}", leverage),
+            position: format!("{}", amts),
+            open_order_amt: format!("{}", 0),
+            net_worth: format!("{}", net_worth),
+            available_balance: format!("{}", wallet_balance),
     });
           
       }
