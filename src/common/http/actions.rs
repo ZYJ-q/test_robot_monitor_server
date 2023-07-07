@@ -83,13 +83,12 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+    // println!("traders{:?}", traders);
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -158,7 +157,7 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
@@ -272,13 +271,12 @@ pub async fn get_bybit_position(traders: HashMap<String, db_data::Trader>) -> Ve
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -316,13 +314,12 @@ pub async fn get_bybit_spot_position(traders: HashMap<String, db_data::Trader>) 
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -401,13 +398,12 @@ pub async fn get_bybit_futures_open_order(traders: HashMap<String, db_data::Trad
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
+
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -446,13 +442,11 @@ pub async fn get_bybit_spot_open_order(traders: HashMap<String, db_data::Trader>
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -532,13 +526,11 @@ pub async fn get_bybit_history_account(traders: HashMap<String, db_data::Trader>
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(
@@ -578,16 +570,11 @@ pub async fn get_history_income(traders: HashMap<String, db_data::Trader>) -> Ve
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("数据{:?}", traders);
+
 
 
 
     for (key, value) in &traders {
-        println!("value.tra_venue.as_str{}", value.tra_venue.as_str());
-        println!("value.r#type.as_str{}", value.r#type.as_str());
-        println!("Key{}", key);
-        println!("api_Key{}", &value.api_key);
-        println!("&value.secret_key{}", &value.secret_key);
         match value.tra_venue.as_str() {
             "Binance" => match value.r#type.as_str() {
                 "Futures" => {
@@ -628,13 +615,11 @@ pub async fn get_bybit_history_income(traders: HashMap<String, db_data::Trader>)
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
-    println!("traders{:?}", traders);
 
     for (key, value) in &traders {
         match value.tra_venue.as_str() {
             "ByBit" => match value.r#type.as_str() {
                 "Futures" => {
-                    println!("api_key{}", &value.api_key);
                     name_api.insert(
                         String::from(key),
                         Box::new(ByBitFuturesApi::new(

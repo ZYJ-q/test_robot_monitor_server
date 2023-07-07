@@ -78,7 +78,7 @@ impl ByBitFuturesApi {
         let mut headers = HeaderMap::new();
         if need_sign {
             let now_time = Utc::now().timestamp_millis();
-            println!("data_json{}", data_json);
+            // println!("data_json{}", data_json);
             let str_to_sign = format!("{}{}{}{}", now_time, self.api_key, 5000, &data_json);
             // println!("{str_to_sign}");
 

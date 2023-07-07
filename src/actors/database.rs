@@ -380,7 +380,7 @@ pub fn get_trader_incomes(pool: web::Data<Pool>) -> Result<HashMap<String, Trade
         //         return Err(e);
         //     }
         // }
-    println!("incomes账户划转{:?}", incomes);
+    // println!("incomes账户划转{:?}", incomes);
     return Ok(incomes);
 }
 
@@ -399,7 +399,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-        println!("获取划转记录account1{:?}", incomes);
+        // println!("获取划转记录account1{:?}", incomes);
         return Ok(incomes);
     } else if tra_id == "account2" {
         let incomes = conn.query_map(
@@ -408,7 +408,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account2{:?}", incomes);
+            // println!("获取划转记录account2{:?}", incomes);
         return Ok(incomes);
 
         
@@ -419,7 +419,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account3{:?}", incomes);
+            // println!("获取划转记录account3{:?}", incomes);
         return Ok(incomes);
 
     } else if tra_id == "account5" {
@@ -429,7 +429,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account4{:?}", incomes);
+            // println!("获取划转记录account4{:?}", incomes);
         return Ok(incomes);
 
     } else if tra_id == "account6" {
@@ -439,7 +439,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account5{:?}", incomes);
+            // println!("获取划转记录account5{:?}", incomes);
         return Ok(incomes);
 
     } else if tra_id == "account7" {
@@ -449,7 +449,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account5{:?}", incomes);
+            // println!("获取划转记录account5{:?}", incomes);
         return Ok(incomes);
 
     } else{
@@ -459,7 +459,7 @@ pub fn get_history_incomes(
                 HistoryIncomes{ time, r#type, asset, amount, tran_id, status }
             }
             ).unwrap();
-            println!("获取划转记录account6{:?}", incomes);
+            // println!("获取划转记录account6{:?}", incomes);
         return Ok(incomes);
 
     }
@@ -523,7 +523,7 @@ pub fn get_trader_positions(pool: web::Data<Pool>, tra_id: &str) -> Result<HashM
                             return Err(e);
                         }
                     }
-    println!("history_trader{:?}", traders);
+    // println!("history_trader{:?}", traders);
     return Ok(traders);
 }
 
@@ -788,7 +788,7 @@ pub fn get_equity(
                 Equity{id, name, time, equity_eth, equity, prod_id }
             }
             ).unwrap();
-        println!("获取历史净值数据{:?}", equitys);
+        // println!("获取历史净值数据{:?}", equitys);
         return Ok(equitys);
 }
 
@@ -836,7 +836,7 @@ pub fn get_date_history_trades(
                 Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
             }
             ).unwrap();
-        println!("获取历史交易数据angus{:?}", trades);
+        // println!("获取历史交易数据angus{:?}", trades);
         return Ok(trades);
     } else if tra_id == "trader02" {
         let value = &format!("select * from trade_histories_4 where tra_time >= {} and tra_time <= {}", start_time, end_time);
@@ -1222,7 +1222,7 @@ pub fn select_id(pool: web::Data<Pool>, name: &str, prod_id: &str) -> Result<()>
     
     match res {
         Ok(tra_id) => {
-            println!("tra_id{:?}", tra_id[0]);
+            // println!("tra_id{:?}", tra_id[0]);
             let _data = conn.exec_drop(
                 r"INSERT INTO test_prod_tra (prod_id, tra_id) VALUES (:prod_id, :tra_id)", 
                 params! {

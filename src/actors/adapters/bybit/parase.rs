@@ -36,7 +36,7 @@ pub async fn get_account_bybit(
 
      
       if let Some(data) = http_api.position(category_lear).await {
-        println!("持仓数据{}", data);
+        // println!("持仓数据{}", data);
         let value: Value = serde_json::from_str(&data).unwrap();
         let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
         let positions = result.get("list").unwrap().as_array().unwrap();
@@ -47,7 +47,7 @@ pub async fn get_account_bybit(
       for p in positions {
           let obj = p.as_object().unwrap();
           let po = obj.get("size").unwrap().as_str().unwrap();
-          println!("持仓数量{}", po);
+          // println!("持仓数量{}", po);
           let position_amt: f64 = obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
           let price: f64 = obj.get("markPrice").unwrap().as_str().unwrap().parse().unwrap();
           let pos_price = position_amt * price;
@@ -59,17 +59,17 @@ pub async fn get_account_bybit(
       let leverage = amts.abs() / equity; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
 
       if let Some(data) = http_api.get_open_orders(category_lear).await {
-        println!("挂单数据{}", data);
+        // println!("挂单数据{}", data);
           let value: Value = serde_json::from_str(&data).unwrap();
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
           let list = result.get("list").unwrap().as_array().unwrap();
           let open_order = list.len();
 
-          println!("权益{}, 杠杆率{}, 净头寸{}, 挂单数量{}, 净值{}, 可用余额{}", equity, leverage, amts, open_order, net_worth, wallet_balance);
+          // println!("权益{}, 杠杆率{}, 净头寸{}, 挂单数量{}, 净值{}, 可用余额{}", equity, leverage, amts, open_order, net_worth, wallet_balance);
 
 
           if let Some(data) = http_api.get_open_orders(category_spot).await {
-            println!("挂单数据{}", data);
+            // println!("挂单数据{}", data);
               let value: Value = serde_json::from_str(&data).unwrap();
               let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
               let list = result.get("list").unwrap().as_array().unwrap();
@@ -147,7 +147,7 @@ pub async fn get_futures_bybit_positions(
   if let Some(data) = http_api.position(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
-      println!("bybit账户仓位数据{:?}", value);
+      // println!("bybit账户仓位数据{:?}", value);
 
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = result.get("list").unwrap().as_array().unwrap();
@@ -208,7 +208,7 @@ pub async fn get_spot_bybit_positions(
   if let Some(data) = http_api.position(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
-      println!("bybit现货仓位数据{:?}", value);
+      // println!("bybit现货仓位数据{:?}", value);
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = result.get("list").unwrap().as_array().unwrap();
       for p in list {
@@ -267,7 +267,7 @@ pub async fn get_bybit_futures_open_orders(
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
   if let Some(data) = http_api.get_open_orders(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
-      println!("bybit挂单数据{:?}", value);
+      // println!("bybit挂单数据{:?}", value);
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let open_orders = result.get("list").unwrap().as_array().unwrap();
@@ -447,7 +447,7 @@ pub async fn get_income_bybit_data(
 
       if let Some(data) = http_api.get_income().await {
           let value: Value = serde_json::from_str(&data).unwrap();
-          println!("划转明细{:?}", value);
+          // println!("划转明细{:?}", value);
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
           let list = result.get("list").unwrap().as_array().unwrap();
           for i in list {

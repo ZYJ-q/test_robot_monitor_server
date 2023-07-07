@@ -146,7 +146,7 @@ pub async fn get_account_sub(
             let open_orders = value.as_array().unwrap();
             let open_order = open_orders.len();
 
-            println!("当前挂单数量:{}, name:{}", open_order, name);
+            // println!("当前挂单数量:{}, name:{}", open_order, name);
 
             return Some(Sub {
                 id: String::from(id.to_string()),
@@ -359,12 +359,12 @@ pub async fn get_income_data(
     
     let mut trade_incomes: VecDeque<Value> = VecDeque::new();
 
-    println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
+    // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
     let dt = Local::now().timestamp_millis();
     let last_day = dt - 1000*60*60*24;
     let mut day_amount = 0.0;
     let mut week_amount = 0.0;
-    println!("当前时间戳{}", dt);
+    // println!("当前时间戳{}", dt);
 
         if let Some(data) = http_api.get_income().await {
             let value: Value = serde_json::from_str(&data).unwrap();
