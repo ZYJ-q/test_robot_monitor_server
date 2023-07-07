@@ -243,7 +243,7 @@ pub async fn get_spot_bybit_positions(
                   let symbols = format!("{}USDT-SPOT", symbol);
                   if symbol == "ETH" {
                     wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
-                    let wallet_balances: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                    let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                     let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
                     let now_time = Utc::now().timestamp_millis();
                   let datetime: DateTime<Utc> = DateTime::from_utc(
