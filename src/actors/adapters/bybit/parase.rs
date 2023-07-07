@@ -225,6 +225,7 @@ pub async fn get_spot_bybit_positions(
           // let mut history_positions: Vec<http_data::Position> = Vec::new();
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
           let list = result.get("list").unwrap().as_array().unwrap();
+          let mut position_side = "";
           
           
           for p in list {
@@ -242,19 +243,27 @@ pub async fn get_spot_bybit_positions(
                   let symbols = format!("{}USDT-SPOT", symbol);
                   if symbol == "ETH" {
                     wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
+                    let wallet_balances: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                     let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
                     let now_time = Utc::now().timestamp_millis();
                   let datetime: DateTime<Utc> = DateTime::from_utc(
                     NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
                     Utc,
                 );
+
+                if wallet_balances > 0.0 {
+                  position_side = "Buy"
+                } else {
+                    position_side = "Sell"
+                }
+
                 // info!("datetime: {}", datetime);
                 let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
     
               asset_obj.insert(String::from("symbol"), Value::from(symbols));
               asset_obj.insert(String::from("position_amt"), Value::from(wallet_balance));
               asset_obj.insert(String::from("time"), Value::from(time));
-              asset_obj.insert(String::from("position_side"), Value::from("-"));
+              asset_obj.insert(String::from("position_side"), Value::from(position_side));
               asset_obj.insert(String::from("entry_price"), Value::from("-"));
               asset_obj.insert(String::from("leverage"), Value::from("-"));
               asset_obj.insert(String::from("mark_price"), Value::from("-"));
