@@ -128,7 +128,7 @@ pub async fn get_futures_bybit_positions(
               continue;
           } else {
               let symbol = obj.get("symbol").unwrap().as_str().unwrap();
-          let millis: i64 = obj.get("updateTime").unwrap().as_str().unwrap().parse().unwrap();
+          let millis: i64 = obj.get("updatedTime").unwrap().as_str().unwrap().parse().unwrap();
           let datetime: DateTime<Utc> = DateTime::from_utc(
               NaiveDateTime::from_timestamp_millis(millis).unwrap(),
               Utc,
@@ -177,6 +177,7 @@ pub async fn get_spot_bybit_positions(
   if let Some(data) = http_api.position(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
+      println!("bybit现货仓位数据{:?}", value);
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = result.get("list").unwrap().as_array().unwrap();
       for p in list {
@@ -187,7 +188,7 @@ pub async fn get_spot_bybit_positions(
               continue;
           } else {
               let symbol = obj.get("symbol").unwrap().as_str().unwrap();
-          let millis: i64 = obj.get("updateTime").unwrap().as_str().unwrap().parse().unwrap();
+          let millis: i64 = obj.get("updatedTime").unwrap().as_str().unwrap().parse().unwrap();
           let datetime: DateTime<Utc> = DateTime::from_utc(
               NaiveDateTime::from_timestamp_millis(millis).unwrap(),
               Utc,
