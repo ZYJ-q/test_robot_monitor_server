@@ -248,7 +248,6 @@ impl HttpVenueApi for ByBitFuturesApi {
             .await;
 
         let res_data = self.check_response_data(response);
-        println!("仓位数据原始{:?}", res_data);
 
         match res_data {
             Some(data) => {
@@ -295,8 +294,7 @@ impl HttpVenueApi for ByBitFuturesApi {
             .send(Method::GET, "/v5/order/realtime", true, &mut params)
             .await;
 
-        let res_data = self.check_response_data(response);
-        println!("挂单数据原始{:?}", res_data);
+        let res_data = self.check_response_data(response);;
 
         match res_data {
             Some(data) => {
