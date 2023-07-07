@@ -45,6 +45,8 @@ pub async fn get_account_bybit(
       // let mut short_position: f64 = 0.0;
       for p in positions {
           let obj = p.as_object().unwrap();
+          let po = obj.get("size").unwrap().as_str().unwrap();
+          println!("持仓数量{}", po);
           let position_amt: f64 = obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
           let price: f64 = obj.get("markPrice").unwrap().as_str().unwrap().parse().unwrap();
           let pos_price = position_amt * price;
