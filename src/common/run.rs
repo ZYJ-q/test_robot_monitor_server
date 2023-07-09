@@ -59,7 +59,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/bybit_spot_open_order").route(web::post().to(handlers::spot_bybit_open_orders)))
             .service(web::resource("/bybit_assets").route(web::post().to(handlers::bybit_assets)))
             .service(web::resource("/bybit_incomes").route(web::post().to(handlers::bybit_incomes)))
-            
+            .service(web::resource("/get_bybit_single_account").route(web::post().to(handlers::single_bybit_account)))
     })
     .bind((ip.as_str(), 8082))?
     .run();
