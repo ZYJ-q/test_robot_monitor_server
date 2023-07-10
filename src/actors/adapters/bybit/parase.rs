@@ -288,7 +288,7 @@ pub async fn get_spot_bybit_positions(
                         Utc,
                     );
     
-                    if wallet_balances > 0.0 {
+                    if wallet_balances > 0.00000 {
                       position_side = "Buy"
                     } else {
                         position_side = "Sell"
