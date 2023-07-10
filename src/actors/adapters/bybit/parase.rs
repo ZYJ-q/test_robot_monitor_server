@@ -251,6 +251,7 @@ pub async fn get_spot_bybit_positions(
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
           let list = result.get("list").unwrap().as_array().unwrap();
           let mut position_side = "";
+          let mut spot_symbol = " ";
           
           
           for p in list {
@@ -266,39 +267,55 @@ pub async fn get_spot_bybit_positions(
               } else {
                   let symbol = objs.get("coin").unwrap().as_str().unwrap();
                   let symbols = format!("{}USDT-SPOT", symbol);
-
-                  if symbol == "ETH"{
-                    wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
-                    let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
-                    let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
-                    let now_time = Utc::now().timestamp_millis();
-                  let datetime: DateTime<Utc> = DateTime::from_utc(
-                    NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
-                    Utc,
-                );
-
-                if wallet_balances > 0.0 {
-                  position_side = "Buy"
-                } else {
-                    position_side = "Sell"
-                }
-
-                // info!("datetime: {}", datetime);
-                let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+                  if let Some(data) = http_api.get_open_orders("spot").await{
+                  
+                    let v: Value = serde_json::from_str(&data).unwrap();
+                    let open_orders_obj = v.as_object().unwrap();
+                    let result = open_orders_obj.get("result").unwrap().as_object().unwrap();
+                    let list = result.get("list").unwrap().as_array().unwrap();
+                    if list.len() != 0{
+                      let lists = list[0].as_object().unwrap();
+                      let open_symbol = lists.get("symbol").unwrap().as_str().unwrap();
+                      spot_symbol = &open_symbol[0..&open_symbol.len() -4]; 
+                      println!("symbol{}", spot_symbol);
+                      if symbol == spot_symbol{
+                        wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
+                        let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                        let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
+                        let now_time = Utc::now().timestamp_millis();
+                      let datetime: DateTime<Utc> = DateTime::from_utc(
+                        NaiveDateTime::from_timestamp_millis(now_time).unwrap(),
+                        Utc,
+                    );
     
-              asset_obj.insert(String::from("symbol"), Value::from(symbols));
-              asset_obj.insert(String::from("position_amt"), Value::from(wallet_balance));
-              asset_obj.insert(String::from("time"), Value::from(time));
-              asset_obj.insert(String::from("position_side"), Value::from(position_side));
-              asset_obj.insert(String::from("entry_price"), Value::from("-"));
-              asset_obj.insert(String::from("leverage"), Value::from("-"));
-              asset_obj.insert(String::from("mark_price"), Value::from("-"));
-              asset_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
-              // 新加的
-              asset_obj.insert(String::from("id"), Value::from(id.to_string()));
+                    if wallet_balances > 0.0 {
+                      position_side = "Buy"
+                    } else {
+                        position_side = "Sell"
+                    }
     
-              history_assets.push_back(Value::from(asset_obj));
+                    // info!("datetime: {}", datetime);
+                    let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+        
+                  asset_obj.insert(String::from("symbol"), Value::from(symbols));
+                  asset_obj.insert(String::from("position_amt"), Value::from(wallet_balance));
+                  asset_obj.insert(String::from("time"), Value::from(time));
+                  asset_obj.insert(String::from("position_side"), Value::from(position_side));
+                  asset_obj.insert(String::from("entry_price"), Value::from("-"));
+                  asset_obj.insert(String::from("leverage"), Value::from("-"));
+                  asset_obj.insert(String::from("mark_price"), Value::from("-"));
+                  asset_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
+                  // 新加的
+                  asset_obj.insert(String::from("id"), Value::from(id.to_string()));
+        
+                  history_assets.push_back(Value::from(asset_obj));
+                      }
+                    }
+                    
+                    
                   }
+
+                  
                   
               }
               }
