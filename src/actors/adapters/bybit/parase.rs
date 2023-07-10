@@ -84,10 +84,16 @@ pub async fn get_account_bybit(
       let mut amts: f64 = 0.0;
       // let mut short_position: f64 = 0.0;
       for p in positions {
+          let mut pos = 0.0;
           let obj = p.as_object().unwrap();
           println!("持仓数量{}", spot_position);
           let position_amt: f64 = obj.get("size").unwrap().as_str().unwrap().parse().unwrap();
-          let pos = position_amt + spot_position;
+          let side = obj.get("side").unwrap().as_str().unwrap();
+          if side == "Sell"{
+            pos = spot_position - position_amt;
+          } else {
+            pos = position_amt + spot_position;
+          }
           let price: f64 = obj.get("markPrice").unwrap().as_str().unwrap().parse().unwrap();
           let pos_price = pos * price;
           amts += pos_price;
