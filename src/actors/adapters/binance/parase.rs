@@ -30,12 +30,13 @@ pub async fn get_account_sub(
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
             let margin_balance:f64 = obj.get("marginBalance").unwrap().as_str().unwrap().parse().unwrap();
-            new_total_balance += margin_balance;
+            
 
 
             
 
             if wallet_balance != 0.00 {
+                
                 if symbol == "BNB" {
                     continue;
                 }
@@ -47,9 +48,14 @@ pub async fn get_account_sub(
                         let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
                         best_price = price;
                         let new_price = wallet_balance * price;
+                        let new_margin_balance = margin_balance * price;
+                        total_margin_balance += new_margin_balance;
                         new_total_balance += new_price;
                         new_total_equity += new_price;
                     }
+                } else {
+                    
+                    total_margin_balance += margin_balance;
                 }
 
                 let cross_un_pnl: f64 = obj.get("crossUnPnl").unwrap().as_str().unwrap().parse().unwrap();
