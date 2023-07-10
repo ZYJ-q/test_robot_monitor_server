@@ -44,25 +44,29 @@ pub async fn get_account_bybit(
                   let result = open_orders_obj.get("result").unwrap().as_object().unwrap();
                   let list = result.get("list").unwrap().as_array().unwrap();
                   if list.len() != 0{
-                    for o in list{
-                      let open_obj = o.as_object().unwrap();
-                      let symbol  = open_obj.get("symbol").unwrap().as_str().unwrap();
-                      spot_symbol = &symbol[0..&symbol.len() -1];
-                      print!("symbol{:?}", spot_symbol);
-                    }
+                    let lists = list[0].as_object().unwrap();
+                    let open_symbol = lists.get("symbol").unwrap().as_str().unwrap();
+                    spot_symbol = &open_symbol[0..&open_symbol.len() -4]; 
+                    println!("symbol{}", spot_symbol);
+                    if symbol == spot_symbol {
+                      // println!("symbol{:?}", spot_symbol);
+                      spot_position = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                    } 
                   }
+                  
+                  
                 }
+
+                
                 
 
                 // println!("挂单处理之后的symbol{}", spot_symbol);
 
-                if symbol == "ETH" || symbol == "BTC"{
-                  // println!("symbol{:?}", spot_symbol);
-                  spot_position = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
-                }   
+                  
             }
          }
       }
+      
 
       let net_worth = equity / origin_balance;
       let category_spot = "spot";
