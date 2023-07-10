@@ -30,6 +30,24 @@ pub async fn get_account_sub(
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
             let margin_balance:f64 = obj.get("marginBalance").unwrap().as_str().unwrap().parse().unwrap();
+
+
+
+            if wallet_balance != 0.00 {
+                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
+                    let asset = format!("{}USDT", symbol);
+                    if let Some(data) = http_api.get_klines(&asset).await {
+                        let v: Value = serde_json::from_str(&data).unwrap();
+                        let price_obj = v.as_object().unwrap();
+                        let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
+                        let new_margin_balance = margin_balance * price;
+                        total_margin_balance += new_margin_balance;
+                    }
+                } else {
+                    
+                    total_margin_balance += margin_balance;
+                }
+            }
             
 
 
@@ -48,14 +66,9 @@ pub async fn get_account_sub(
                         let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
                         best_price = price;
                         let new_price = wallet_balance * price;
-                        let new_margin_balance = margin_balance * price;
-                        total_margin_balance += new_margin_balance;
                         new_total_balance += new_price;
                         new_total_equity += new_price;
                     }
-                } else {
-                    
-                    total_margin_balance += margin_balance;
                 }
 
                 let cross_un_pnl: f64 = obj.get("crossUnPnl").unwrap().as_str().unwrap().parse().unwrap();
@@ -145,6 +158,8 @@ pub async fn get_account_sub(
 
         }
         // let position = amts * prices;
+
+        println!("账户本金{}, 名字{}", total_margin_balance, name);
 
 
         let leverage = amts.abs() / total_margin_balance; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
