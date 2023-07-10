@@ -34,18 +34,20 @@ pub async fn get_account_sub(
 
 
             if wallet_balance != 0.00 {
-                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
+                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" || symbol != "BUSD" {
                     let asset = format!("{}USDT", symbol);
                     if let Some(data) = http_api.get_klines(&asset).await {
                         let v: Value = serde_json::from_str(&data).unwrap();
                         let price_obj = v.as_object().unwrap();
                         let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
                         let new_margin_balance = margin_balance * price;
+                        println!("不是u本位的金额{}", new_margin_balance);
                         total_margin_balance += new_margin_balance;
                     }
                 } else {
-                    
+                    println!("u本位的金额{}", margin_balance);
                     total_margin_balance += margin_balance;
+                    println!("加完之后的金额{}", total_margin_balance);
                 }
             }
             
