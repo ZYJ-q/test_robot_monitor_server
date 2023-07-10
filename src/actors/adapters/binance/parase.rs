@@ -22,12 +22,16 @@ pub async fn get_account_sub(
         //     println!(" 账户数据{:?}", assets);
         // }
         let mut new_total_balance = 0.00;
+        let mut total_margin_balance = 0.0;
         let mut new_total_equity = 0.00;
         let mut best_price = 0.00;
         for a in assets {
             let obj = a.as_object().unwrap();
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
+            let margin_balance:f64 = obj.get("marginBalance").unwrap().as_str().unwrap().parse().unwrap();
+            new_total_balance += margin_balance;
+
 
             
 
@@ -137,7 +141,7 @@ pub async fn get_account_sub(
         // let position = amts * prices;
 
 
-        let leverage = amts.abs() / new_total_equity; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
+        let leverage = amts.abs() / total_margin_balance; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
         // println!("当前杠杆率{}", leverage);
         let leverage_eth = amts.abs()/ total_wallet_balance;
 
