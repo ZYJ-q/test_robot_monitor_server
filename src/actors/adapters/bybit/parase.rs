@@ -47,7 +47,7 @@ pub async fn get_account_bybit(
                     let lists = list[0].as_object().unwrap();
                     let open_symbol = lists.get("symbol").unwrap().as_str().unwrap();
                     spot_symbol = &open_symbol[0..&open_symbol.len() -4]; 
-                    println!("symbol{}", spot_symbol);
+                    // println!("symbol{}", spot_symbol);
                     if symbol == spot_symbol {
                       // println!("symbol{:?}", spot_symbol);
                       spot_position = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
@@ -186,7 +186,7 @@ pub async fn get_futures_bybit_positions(
   if let Some(data) = http_api.position(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
-      // println!("bybit账户仓位数据{:?}", value);
+      println!("bybit期货账户仓位数据{:?}", value);
 
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = result.get("list").unwrap().as_array().unwrap();
@@ -212,6 +212,8 @@ pub async fn get_futures_bybit_positions(
           let leverage = obj.get("leverage").unwrap().as_str().unwrap();
           let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
           let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
+
+          
 
           pos_obj.insert(String::from("symbol"), Value::from(furture_symbol));
           pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
