@@ -44,7 +44,8 @@ pub async fn get_account_sub(
                         println!("不是u本位的金额{}", new_margin_balance);
                         total_margin_balance += new_margin_balance;
                     }
-                } else {
+                } 
+                if symbol == "USDT" || symbol == "USDC" || symbol == "BUSD" {
                     println!("u本位的金额{}", margin_balance);
                     total_margin_balance += margin_balance;
                     println!("加完之后的金额{}", total_margin_balance);
