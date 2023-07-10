@@ -49,7 +49,6 @@ pub async fn get_account_bybit(
                       let symbol  = open_obj.get("symbol").unwrap().as_str().unwrap();
                       spot_symbol = &symbol[0..&symbol.len() -1];
                       print!("symbol{:?}", spot_symbol);
-                      
                     }
                   }
                 }
