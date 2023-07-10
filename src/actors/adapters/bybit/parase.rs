@@ -18,25 +18,47 @@ pub async fn get_account_bybit(
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
       let mut spot_position = 0.0;
+      let mut spot_symbol = " ";
       
       let assets = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let list = assets.get("list").unwrap().as_array().unwrap();
       let mut wallet_balance = "";
       let mut equity = 0.0;
+      
       for a in list {
           let obj = a.as_object().unwrap();
           wallet_balance = obj.get("totalWalletBalance").unwrap().as_str().unwrap();
           equity = obj.get("totalEquity").unwrap().as_str().unwrap().parse().unwrap();
           let assets = obj.get("coin").unwrap().as_array().unwrap();
           for c in assets {
-              let mut asset_obj: Map<String, Value> = Map::new();
               let objs = c.as_object().unwrap();
               let amt:f64= objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
             if amt == 0.0 {
                 continue;
             } else {
                 let symbol = objs.get("coin").unwrap().as_str().unwrap();
-                if symbol == "ETH"{
+                if let Some(data) = http_api.get_open_orders("spot").await{
+                  
+                  let v: Value = serde_json::from_str(&data).unwrap();
+                  let open_orders_obj = v.as_object().unwrap();
+                  let result = open_orders_obj.get("result").unwrap().as_object().unwrap();
+                  let list = result.get("list").unwrap().as_array().unwrap();
+                  if list.len() != 0{
+                    for o in list{
+                      let open_obj = o.as_object().unwrap();
+                      let symbol  = open_obj.get("symbol").unwrap().as_str().unwrap();
+                      spot_symbol = &symbol[0..&symbol.len() -1];
+                      print!("symbol{:?}", spot_symbol);
+                      
+                    }
+                  }
+                }
+                
+
+                // println!("挂单处理之后的symbol{}", spot_symbol);
+
+                if symbol == "ETH" || symbol == "BTC"{
+                  // println!("symbol{:?}", spot_symbol);
                   spot_position = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                 }   
             }
@@ -241,7 +263,8 @@ pub async fn get_spot_bybit_positions(
               } else {
                   let symbol = objs.get("coin").unwrap().as_str().unwrap();
                   let symbols = format!("{}USDT-SPOT", symbol);
-                  if symbol == "ETH" {
+
+                  if symbol == "ETH"{
                     wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
                     let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                     let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 

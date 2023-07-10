@@ -298,7 +298,6 @@ impl HttpVenueApi for ByBitFuturesApi {
 
         match res_data {
             Some(data) => {
-                // print!("K线数据{}", data);
                 return Some(data);
             }
             None => {
