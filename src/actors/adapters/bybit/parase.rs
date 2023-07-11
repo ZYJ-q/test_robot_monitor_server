@@ -120,6 +120,7 @@ pub async fn get_account_bybit(
               let list = result.get("list").unwrap().as_array().unwrap();
               let open_order_spot = list.len();
               let open_orders = open_order + open_order_spot;
+              println!("挂单数据{}", open_orders);
 
               if let Some(data) = http_api.get_open_orders_usdc().await {
 
@@ -146,7 +147,7 @@ pub async fn get_account_bybit(
 
               } else {
 
-                error!("Can't get {} openOrders.", name);
+                error!("Can't get {} usdcopenOrders.", open_orders);
               return Some(ByBitSub {
                 id: String::from(id.to_string()),
                 name: String::from(name),
