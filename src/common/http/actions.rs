@@ -478,6 +478,49 @@ pub async fn get_bybit_spot_open_order(traders: HashMap<String, db_data::Trader>
     return data;
 }
 
+
+// 获取bybit现货usdc挂单数据
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_bybit_usdc_open_order(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "ByBit" => match value.r#type.as_str() {
+                "Futures" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(ByBitFuturesApi::new(
+                            "https://api.bybit.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    // 预备数据
+    let mut data: Vec<Value> = [].to_vec() ;
+
+    // 合成account数据
+    for (key, value) in &name_api {
+        let name = key;
+        let origin = &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let res = get_bybit_spot_open_orders(value, name, id, origin.parse().unwrap()).await;
+        data = res
+    }
+    // 发送信息
+    ;
+    return data;
+}
+
 // 获取账户资产数据
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_history_account(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {

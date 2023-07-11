@@ -120,17 +120,47 @@ pub async fn get_account_bybit(
               let list = result.get("list").unwrap().as_array().unwrap();
               let open_order_spot = list.len();
               let open_orders = open_order + open_order_spot;
-    
-              return Some(ByBitSub {
+
+              if let Some(data) = http_api.get_open_orders_usdc().await {
+
+
+                let value: Value = serde_json::from_str(&data).unwrap();
+                let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
+                let list = result.get("list").unwrap().as_array().unwrap();
+                let open_order_usdc = list.len();
+                let new_open_orders = open_order_usdc + open_orders;
+
+
+
+
+                return Some(ByBitSub {
                   id: String::from(id.to_string()),
                   name: String::from(name),
                   total_equity: format!("{}", equity),
                   leverage: format!("{}", leverage),
                   position: format!("{}", amts),
-                  open_order_amt: format!("{}", open_orders),
+                  open_order_amt: format!("{}", new_open_orders),
                   net_worth: format!("{}", net_worth),
                   available_balance: format!("{}", wallet_balance),
               });
+
+              } else {
+
+                error!("Can't get {} openOrders.", name);
+              return Some(ByBitSub {
+                id: String::from(id.to_string()),
+                name: String::from(name),
+                total_equity: format!("{}", equity),
+                leverage: format!("{}", leverage),
+                position: format!("{}", amts),
+                open_order_amt: format!("{}", open_orders),
+                net_worth: format!("{}", net_worth),
+                available_balance: format!("{}", wallet_balance),
+            });
+                  
+              }
+    
+              
           } else {
               error!("Can't get {} openOrders.", name);
               return Some(ByBitSub {
@@ -413,6 +443,71 @@ pub async fn get_bybit_spot_open_orders(
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
   if let Some(data) = http_api.get_open_orders(category_lear).await {
       let value: Value = serde_json::from_str(&data).unwrap();
+      // let mut history_positions: Vec<http_data::Position> = Vec::new();
+      let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
+      let open_orders = result.get("list").unwrap().as_array().unwrap();
+
+      if open_orders.len() == 0 {
+          println!("当前没有挂单")
+      } else {
+          for a in open_orders {
+              let obj = a.as_object().unwrap();
+              let mut open_order_object: Map<String, Value> = Map::new();
+              let millis:i64 = obj.get("createdTime").unwrap().as_str().unwrap().parse().unwrap();
+              let datetime: DateTime<Utc> = DateTime::from_utc(
+                  NaiveDateTime::from_timestamp_millis(millis).unwrap(),
+                  Utc,
+              );
+              // info!("datetime: {}", datetime);
+              let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+              
+              let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+              let spot_symbol = format!("{}-SPOT", symbol);
+              let r#type = obj.get("orderType").unwrap().as_str().unwrap();
+              let mut type_value = "";
+              if r#type == "Limit" {
+                  type_value = "限价单"
+              } else if r#type == "Market" {
+                  type_value = "市价单"
+              }
+              let side = obj.get("side").unwrap().as_str().unwrap();
+              let price = obj.get("price").unwrap().as_str().unwrap();
+              let orig_qty = obj.get("qty").unwrap().as_str().unwrap();
+              let executed_qty = obj.get("cumExecQty").unwrap().as_str().unwrap();
+              let reduce_only = obj.get("reduceOnly").unwrap().as_bool().unwrap();
+              open_order_object.insert(String::from("time"), Value::from(time.clone()));
+              open_order_object.insert(String::from("name"), Value::from(name));
+              open_order_object.insert(String::from("symbol"), Value::from(spot_symbol));
+              open_order_object.insert(String::from("type"), Value::from(type_value));
+              open_order_object.insert(String::from("side"), Value::from(side));
+              open_order_object.insert(String::from("price"), Value::from(price));
+              open_order_object.insert(String::from("orig_qty"), Value::from(orig_qty));
+              open_order_object.insert(String::from("executed_qty"), Value::from(executed_qty));
+              open_order_object.insert(String::from("reduce_only"), Value::from(reduce_only));
+              history_open_orders.push_back(Value::from(open_order_object));
+              // println!("11111{}", vec[a]);
+          }
+      }
+          return history_open_orders.into();
+  } else {
+      error!("Can't get {} account.", name);
+      return history_open_orders.into();
+  }
+}
+
+
+
+// 获取bybit现货挂单明细usdc
+pub async fn get_bybit_usdc_open_orders(
+  http_api: &Box<dyn HttpVenueApi>,
+  name: &str,
+  id: &u64,
+  origin_balance: f64,
+) -> Vec<Value> {
+  let mut history_open_orders: VecDeque<Value> = VecDeque::new();
+  if let Some(data) = http_api.get_open_orders_usdc().await {
+      let value: Value = serde_json::from_str(&data).unwrap();
+      println!("usdc数据{}", value);
       // let mut history_positions: Vec<http_data::Position> = Vec::new();
       let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();
       let open_orders = result.get("list").unwrap().as_array().unwrap();

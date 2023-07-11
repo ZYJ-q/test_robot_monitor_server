@@ -233,6 +233,31 @@ impl HttpVenueApi for BinanceFuturesApi {
         }
     }
 
+
+
+    // 获取当前挂单(USDC)
+    async fn get_open_orders_usdc(&self) -> Option<String> {
+        let mut params: HashMap<String, Value> = HashMap::new();
+
+        params.insert(String::from("category"), Value::from("spot"));
+        params.insert(String::from("settleCoin"), Value::from("USDC"));
+
+        let response = self
+            .send(Method::GET, "/v5/order/realtime", true, &mut params)
+            .await;
+
+        let res_data = self.check_response_data(response);;
+
+        match res_data {
+            Some(data) => {
+                return Some(data);
+            }
+            None => {
+                return None;
+            }
+        }
+    }
+
     async fn position(&self, category: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
