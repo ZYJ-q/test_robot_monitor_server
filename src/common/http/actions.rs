@@ -4,7 +4,7 @@ use serde_json::Value;
 use mysql::*;
 
 use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts};
-use crate::actors::adapters::bybit::parase::{get_account_bybit, get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
+use crate::actors::adapters::bybit::parase::{get_account_bybit, get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_usdc_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
 
 use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi};
 
@@ -513,7 +513,7 @@ pub async fn get_bybit_usdc_open_order(traders: HashMap<String, db_data::Trader>
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_bybit_spot_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_bybit_usdc_open_orders(value, name, id, origin.parse().unwrap()).await;
         data = res
     }
     // 发送信息
