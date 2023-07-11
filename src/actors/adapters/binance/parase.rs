@@ -81,9 +81,9 @@ pub async fn get_account_sub(
             }
         }
         // 余额
-        let total_wallet_balance: f64 = ((new_total_balance / best_price) - 34.27754) * best_price;
+        let total_wallet_balance: f64 = ((new_total_balance / best_price) - 28.97086) * best_price;
         // 权益
-        let new_total_equity_eth: f64 = ((new_total_equity / best_price) - 34.27754) * best_price;
+        let new_total_equity_eth: f64 = ((new_total_equity / best_price) - 28.97086) * best_price;
         let net_worth = new_total_equity / origin_balance;
         
         // let total_balance: f64 = value
