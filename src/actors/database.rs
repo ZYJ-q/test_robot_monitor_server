@@ -692,6 +692,47 @@ pub fn get_bian_equity(
         return Ok(equitys);
 }
 
+
+// 获取后续的权益数据
+pub fn get_total_bybit_equity(
+    pool: web::Data<Pool>,
+    name: &str
+) -> Result<Vec<BybitEquity>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    let value = &format!("select * from total_bybit_equity where name = {}", name);
+        let equitys = conn.query_map(
+            value,
+            |(id, name, time, equity)| {
+                BybitEquity{id, name, time, equity}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        // println!("equity权益数据{:?}", equitys);
+        return Ok(equitys);
+}
+
+// 获取bian权益数据
+pub fn get_total_bian_equity(
+    pool: web::Data<Pool>,
+    name: &str
+) -> Result<Vec<BianEquity>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    let value = &format!("select * from total_bian_equity where name = {}", name);
+        let equitys = conn.query_map(
+            value,
+            |(id, name, time, equity, r#type)| {
+                BianEquity{id, name, time, equity, r#type}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        // println!("bian权益数据{:?}", equitys);
+        return Ok(equitys);
+}
+
+
+
 // 获取持仓数据
 pub fn get_history_positions(
     pool: web::Data<Pool>,
