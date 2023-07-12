@@ -659,11 +659,13 @@ pub fn get_history_bybit_trades(
 // 获取权益数据
 pub fn get_bybit_equity(
     pool: web::Data<Pool>,
+    name: &str
 ) -> Result<Vec<BybitEquity>> {
     let mut conn = pool.get_conn().unwrap();
+    let value = &format!("select * from  bybit_equitys where name = {}", name);
     // let mut re: Vec<Trade> = Vec::new();
         let equitys = conn.query_map(
-            "select * from  bybit_equitys",
+            value,
             |(id, name, time, equity)| {
                 BybitEquity{id, name, time, equity}
             }

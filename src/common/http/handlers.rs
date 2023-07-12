@@ -310,7 +310,7 @@ pub async fn get_bybit_equity(mut payload: web::Payload, db_pool: web::Data<Pool
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Account>(&body)?;
+    let obj = serde_json::from_slice::<AccountEquity>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -319,7 +319,7 @@ pub async fn get_bybit_equity(mut payload: web::Payload, db_pool: web::Data<Pool
         }
     }
 
-    let date =  database::get_bybit_equity(db_pool.clone());
+    let date =  database::get_bybit_equity(db_pool.clone(), &obj.name);
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {
