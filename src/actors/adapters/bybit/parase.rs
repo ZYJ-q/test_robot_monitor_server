@@ -306,7 +306,7 @@ pub async fn get_spot_bybit_positions(
               } else {
                   let symbol = objs.get("coin").unwrap().as_str().unwrap();
                   let symbols = format!("{}USDT-SPOT", symbol);
-                  if let Some(data) = http_api.get_open_orders("spot").await{
+                  if let Some(data) = http_api.position("linear").await{
                   
                     let v: Value = serde_json::from_str(&data).unwrap();
                     let open_orders_obj = v.as_object().unwrap();
