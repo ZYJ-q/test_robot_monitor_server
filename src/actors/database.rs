@@ -702,7 +702,7 @@ pub fn get_total_bybit_equity(
 ) -> Result<Vec<BybitEquity>> {
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
-    let value = &format!("select * from total_bybit_equity where name = {}", name);
+    let value = &format!("select * from total_bybit_equity where name = {} order by time", name);
         let equitys = conn.query_map(
             value,
             |(id, name, time, equity)| {
@@ -721,7 +721,7 @@ pub fn get_total_bian_equity(
 ) -> Result<Vec<BianEquity>> {
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
-    let value = &format!("select * from total_bian_equity where name = {}", name);
+    let value = &format!("select * from total_bian_equity where name = {} order by time", name);
         let equitys = conn.query_map(
             value,
             |(id, name, time, equity, r#type)| {
