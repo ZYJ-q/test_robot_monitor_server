@@ -5,6 +5,7 @@ pub struct Account {
     pub acc_id: u64,
     pub acc_name: String,
     pub acc_password: String,
+    pub admin: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -126,6 +127,12 @@ pub struct BianEquity {
     pub time: String,
     pub equity: String,
     pub r#type: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ClearData {
+    pub id: u64,
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, Product, Trader, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, Product, Trader, ClearData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::SignInProRes;
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -28,7 +28,7 @@ pub fn check_account(pool: web::Data<Pool>, name: &str, password: &str) -> Resul
     let mut conn = pool.get_conn().unwrap();
     let res = conn
         .exec_first(
-            r"select * from account_information where acc_name = :name and acc_password = :password",
+            r"select * from accounts where acc_name = :name and acc_password = :password",
             params! {
                 "name" => name,
                 "password" => password
@@ -37,10 +37,11 @@ pub fn check_account(pool: web::Data<Pool>, name: &str, password: &str) -> Resul
         .map(
             // Unpack Result
             |row| {
-                row.map(|(acc_id, acc_name, acc_password)| Account {
+                row.map(|(acc_id, acc_name, acc_password, admin)| Account {
                     acc_id,
                     acc_name,
                     acc_password,
+                    admin
                 })
             },
         );
@@ -59,7 +60,7 @@ pub fn add_active(
     let mut re: Vec<SignInProRes> = Vec::new();
     let res = conn
         .exec_first(
-            r"select * from actives where name = :name",
+            r"select * from active where name = :name",
             params! {
                 "name" => name
             },
@@ -78,7 +79,7 @@ pub fn add_active(
         Ok(resq) => match resq {
             Some(active) => {
                 conn.exec_drop(
-                    r"delete from actives where name = :name",
+                    r"delete from active where name = :name",
                     params! {
                         "name" => active.name
                     },
@@ -91,7 +92,7 @@ pub fn add_active(
     }
 
     let res = conn.exec_drop(
-        r"INSERT INTO actives (acc_id, token, name) VALUES (:acc_id, :token, :name)",
+        r"INSERT INTO active (acc_id, token, name) VALUES (:acc_id, :token, :name)",
         params! {
             "acc_id" => account_id,
             "token" => token,
@@ -257,22 +258,41 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
 
 
 // 获取所有的账户列表
-pub fn get_all_traders(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
+pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<Trader>>> {
+    let mut products: Vec<Trader> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
-    let res = conn.query_map(
-        r"select * from test_traders",
-        |(tra_id,
-            tra_venue,
-            ori_balance,
-            tra_currency,
-            api_key,
-            secret_key,
-            other_keys,
-            r#type,
-            name,
-            show,
-            threshold)| Trader {
-                tra_id,
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from test_acc_tra where acc_id = :acc_id",
+        params! {
+            "acc_id" => account_id
+        },
+    );
+    match res {
+        Ok(tra_ids) => {
+            for tra_id in tra_ids {
+                let mut conn = pool.get_conn().unwrap();
+                let prod = conn
+                    .exec_first(
+                        r"select * from test_traders where tra_id = :tra_id",
+                        params! {
+                            "tra_id" => tra_id
+                        },
+                    )
+                    .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(|(tra_id,
+                                tra_venue,
+                                ori_balance,
+                                tra_currency,
+                                api_key,
+                                secret_key,
+                                other_keys,
+                                r#type,
+                                name,
+                                show,
+                                threshold,)| Trader {
+                                tra_id,
                 tra_venue,
                 ori_balance,
                 tra_currency,
@@ -283,10 +303,27 @@ pub fn get_all_traders(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
                 name,
                 show,
                 threshold,
+                            })
+                        },
+                    );
+                match prod {
+                    Ok(produc) => match produc {
+                        Some(product) => {
+                            products.push(product);
+                        }
+                        None => {
+                            continue;
+                        }
+                    },
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
             }
-    ).unwrap();
-    
-    return Ok(res);
+            return Ok(Some(products));
+        }
+        Err(e) => return Err(e),
+    }
 }
 
 
@@ -655,6 +692,22 @@ pub fn get_history_bybit_trades(
     }
 }
 
+// 清除数据
+pub fn clear_data(
+    pool: web::Data<Pool>,
+) -> Result<Vec<ClearData>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+        let equitys = conn.query_map(
+            "select * from test_clear",
+            |(id, name)| {
+                ClearData{id, name}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account1{:?}", trades);
+        // println!("bian权益数据{:?}", equitys);
+        return Ok(equitys);
+}
 
 // 获取权益数据
 pub fn get_bybit_equity(

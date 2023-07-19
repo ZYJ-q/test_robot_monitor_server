@@ -294,7 +294,7 @@ impl HttpVenueApi for ByBitFuturesApi {
             .send(Method::GET, "/v5/order/realtime", true, &mut params)
             .await;
 
-        let res_data = self.check_response_data(response);;
+        let res_data = self.check_response_data(response);
 
         match res_data {
             Some(data) => {

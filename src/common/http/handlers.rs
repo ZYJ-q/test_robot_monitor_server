@@ -4,7 +4,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, SelectTraders, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -38,7 +38,7 @@ pub async fn sign_in(
             Some(response) => {
                 let rand_string: String = thread_rng()
                     .sample_iter(Alphanumeric)
-                    .take(10)
+                    .take(15)
                     .map(char::from)
                     .collect();
                 match database::add_active(
@@ -52,6 +52,8 @@ pub async fn sign_in(
                             status: 200,
                             data: SignInRes {
                                 name: response.acc_name,
+                                account: response.acc_id,
+                                admin: response.admin,
                                 products: pros,
                                 token: rand_string,
                             },
@@ -271,7 +273,7 @@ pub async fn get_account(mut payload: web::Payload, db_pool: web::Data<Pool>) ->
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Account>(&body)?;
+    let obj = serde_json::from_slice::<SelectTraders>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -280,7 +282,7 @@ pub async fn get_account(mut payload: web::Payload, db_pool: web::Data<Pool>) ->
         }
     }
 
-    let date =  database::get_all_traders(db_pool.clone());
+    let date =  database::get_all_traders(db_pool.clone(), &obj.account_id);
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {
@@ -358,12 +360,12 @@ pub async fn clear_equity(mut payload: web::Payload, db_pool: web::Data<Pool>) -
         }
     }
 
-    let date =  database::get_all_traders(db_pool.clone());
+    let date =  database::clear_data(db_pool.clone());
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {
                     status: 200,
-                    data:traders,
+                    data: traders,
                 }));
             }
             Err(e) => {
