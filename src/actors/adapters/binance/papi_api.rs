@@ -367,6 +367,7 @@ impl HttpVenueApi for BinancePapiApi {
 
         match res_data {
             Some(data) => {
+              println!("账户流水{}", data);
                 return Some(data);
             }
             None => {

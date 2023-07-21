@@ -424,7 +424,7 @@ pub async fn get_papi_account_asset(traders: HashMap<String, db_data::Trader>) -
     return data;
 }
 
-// 获取papi账户当前挂单数据
+// 获取papi账户划转
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_papi_account_income(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {
     // http池子、
