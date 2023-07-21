@@ -775,7 +775,7 @@ pub async fn get_papi_income_data(
     // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
     // println!("当前时间戳{}", dt);
 
-        if let Some(data) = http_api.get_income("INTERNAL_TRANSFER").await {
+        if let Some(data) = http_api.get_income("TRANSFER").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             println!("获取基金流水{:?}", value);
 
