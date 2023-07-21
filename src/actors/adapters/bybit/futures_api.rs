@@ -354,7 +354,7 @@ impl HttpVenueApi for ByBitFuturesApi {
     }
 
 //    获取账户资金流水明细（其中把转账明细筛选出来）
-    async fn get_income(&self) -> Option<String> {
+    async fn get_income(&self, income_type:&str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
         let response = self

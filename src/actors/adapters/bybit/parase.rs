@@ -624,7 +624,7 @@ pub async fn get_income_bybit_data(
   let mut from = "";
   let mut status = "";
 
-      if let Some(data) = http_api.get_income().await {
+      if let Some(data) = http_api.get_income("").await {
           let value: Value = serde_json::from_str(&data).unwrap();
           println!("划转明细{:?}", value);
           let result = value.as_object().unwrap().get("result").unwrap().as_object().unwrap();

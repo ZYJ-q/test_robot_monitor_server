@@ -394,7 +394,7 @@ pub async fn get_income_data(
     let mut week_amount = 0.0;
     // println!("当前时间戳{}", dt);
 
-        if let Some(data) = http_api.get_income().await {
+        if let Some(data) = http_api.get_income("").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             // println!("获取基金流水{:?}", value);
             if value["total"] != 0 {
@@ -775,9 +775,12 @@ pub async fn get_papi_income_data(
     // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
     // println!("当前时间戳{}", dt);
 
-        if let Some(data) = http_api.get_income().await {
+        if let Some(data) = http_api.get_income("INTERNAL_TRANSFER").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             println!("获取基金流水{:?}", value);
+
+
+            
         //     if value["total"] != 0 {
         //         let income = value["rows"].as_array().unwrap();
         //     // let last_day = dt - 1000*60*4;

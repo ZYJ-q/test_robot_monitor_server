@@ -352,12 +352,14 @@ impl HttpVenueApi for BinancePapiApi {
     }
 
 //    获取账户资金流水明细（其中把转账明细筛选出来）
-    async fn get_income(&self) -> Option<String> {
+    async fn get_income(&self, income_type: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
         let now_time = Utc::now().timestamp_millis();
         params.insert(String::from("timestamp"), Value::from(now_time));
-        params.insert(String::from("incomeType"), Value::from("TRANSFER"));
+        params.insert(String::from("incomeType"), Value::from(income_type));
+
+        println!("划转记录{:?}", params);
 
         let response = self
             .send(Method::GET, "/papi/v1/um/income", true, &mut params)
