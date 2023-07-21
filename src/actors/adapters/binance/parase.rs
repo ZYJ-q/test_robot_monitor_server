@@ -709,8 +709,8 @@ pub async fn get_papi_history_accounts(
                 if um_wallet_balance == 0.0 {
                     let wallet_balance= obj.get("totalWalletBalance").unwrap().as_str().unwrap();
             let unrealized_profit = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap();
-            let margin_balance = obj.get("crossMarginFee").unwrap().as_str().unwrap();
-            let available_balance = obj.get("crossMarginFee").unwrap().as_str().unwrap();
+            let margin_balance = obj.get("crossMarginFree").unwrap().as_str().unwrap();
+            let available_balance = obj.get("crossMarginFree").unwrap().as_str().unwrap();
 
             asset_obj.insert(String::from("symbol"), Value::from(symbol));
             asset_obj.insert(String::from("wallet_balance"), Value::from(wallet_balance));
