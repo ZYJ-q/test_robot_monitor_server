@@ -778,6 +778,10 @@ pub async fn get_papi_income_data(
         if let Some(data) = http_api.get_income("TRANSFER").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             println!("获取基金流水{:?}", value);
+            let incomes = value.as_array().unwrap();
+            if incomes.len() == 0 {
+                
+            }
 
 
             
