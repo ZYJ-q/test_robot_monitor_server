@@ -257,6 +257,80 @@ pub async fn papi_positions(mut payload: web::Payload, db_pool: web::Data<Pool>)
 }
 
 
+pub async fn papi_assets(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<Posr>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    match database::get_trader_positions(db_pool.clone(), &obj.tra_id) {
+        Ok(traders) => {
+            let acct_re = actions::get_papi_account_asset(traders).await;
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: acct_re,
+            }));
+        }
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
+pub async fn papi_income(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<Posr>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    match database::get_trader_positions(db_pool.clone(), &obj.tra_id) {
+        Ok(traders) => {
+            let acct_re = actions::get_papi_account_income(traders).await;
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: acct_re,
+            }));
+        }
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
 
 pub async fn papi_open_orders(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects

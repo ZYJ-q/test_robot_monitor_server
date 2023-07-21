@@ -683,3 +683,136 @@ pub async fn get_papi_open_orders(
 
 
 
+// 获取papi资产明细
+pub async fn get_papi_history_accounts(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+) -> Vec<Value> {
+    let mut history_assets: VecDeque<Value> = VecDeque::new();
+    if let Some(data) = http_api.position_risk().await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        // let mut history_positions: Vec<http_data::Position> = Vec::new();
+        
+        let assets = value.as_array().unwrap();
+        for p in assets {
+            let mut asset_obj: Map<String, Value> = Map::new();
+            let obj = p.as_object().unwrap();
+            let amt:f64= obj.get("totalWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = obj.get("asset").unwrap().as_str().unwrap();
+                let um_wallet_balance:f64 = obj.get("umWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+
+                if um_wallet_balance == 0.0 {
+                    let wallet_balance= obj.get("totalWalletBalance").unwrap().as_str().unwrap();
+            let unrealized_profit = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap();
+            let margin_balance = obj.get("crossMarginFee").unwrap().as_str().unwrap();
+            let available_balance = obj.get("crossMarginFee").unwrap().as_str().unwrap();
+
+            asset_obj.insert(String::from("symbol"), Value::from(symbol));
+            asset_obj.insert(String::from("wallet_balance"), Value::from(wallet_balance));
+            asset_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
+            asset_obj.insert(String::from("margin_balance"), Value::from(margin_balance));
+            asset_obj.insert(String::from("availableBalance"), Value::from(available_balance));
+            // 新加的
+            asset_obj.insert(String::from("id"), Value::from(id.to_string()));
+
+            history_assets.push_back(Value::from(asset_obj));
+
+                } else {
+                    if let Some(data) = http_api.position_um().await {
+                        let value: Value = serde_json::from_str(&data).unwrap();
+                        let assetes = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
+                        for a in assetes{
+                            let mut assete_obj: Map<String, Value> = Map::new();
+                            let obj = a.as_object().unwrap();
+                            let balance:f64 = obj.get("crossWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+                            if balance == 0.0 {
+                                continue;
+                            } else {
+                                let symbol = obj.get("asset").unwrap().as_str().unwrap();
+                                let cross_wallet_balance = obj.get("crossWalletBalance").unwrap().as_str().unwrap();
+                                let cross_un_pnl = obj.get("crossUnPnl").unwrap().as_str().unwrap();
+                                let maint_margin = obj.get("maintMargin").unwrap().as_str().unwrap();
+                                let available_balance = obj.get("crossWalletBalance").unwrap().as_str().unwrap();
+
+                                assete_obj.insert(String::from("symbol"), Value::from(symbol));
+                                assete_obj.insert(String::from("wallet_balance"), Value::from(cross_wallet_balance));
+                                assete_obj.insert(String::from("unrealized_profit"), Value::from(cross_un_pnl));
+                                assete_obj.insert(String::from("margin_balance"), Value::from(maint_margin));
+                                assete_obj.insert(String::from("availableBalance"), Value::from(available_balance));
+            // 新加的
+            assete_obj.insert(String::from("id"), Value::from(id.to_string()));
+
+            history_assets.push_back(Value::from(assete_obj));
+
+
+                            }
+                        } 
+                    }
+                }
+            
+            }
+        }
+            return history_assets.into();
+    } else {
+        error!("Can't get {} account.", name);
+        return history_assets.into();
+    }
+}
+
+// 获取papi划转明细
+pub async fn get_papi_income_data(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+) -> Vec<Value>{
+    
+    let mut trade_incomes: VecDeque<Value> = VecDeque::new();
+
+    // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
+    // println!("当前时间戳{}", dt);
+
+        if let Some(data) = http_api.get_income().await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+            println!("获取基金流水{:?}", value);
+        //     if value["total"] != 0 {
+        //         let income = value["rows"].as_array().unwrap();
+        //     // let last_day = dt - 1000*60*4;
+        //     for i in income {
+        //         let mut income_obj: Map<String, Value> = Map::new();
+        //         let obj = i.as_object().unwrap(); // positionAmt positionSide
+                
+        //         let status = obj.get("status").unwrap().as_str().unwrap();
+        //         if status == "CONFIRMED" {
+        //             let time = obj.get("timestamp").unwrap().as_i64().unwrap();
+        //             let amount:f64 = obj.get("amount").unwrap().as_str().unwrap().parse().unwrap();
+        //             let asset = obj.get("asset").unwrap().as_str().unwrap();
+        //             week_amount += amount;
+        //             if time >= last_day {
+        //                 day_amount += amount;
+        //             }
+        //             income_obj.insert(String::from("day_amount"), Value::from(day_amount.to_string()));
+        //             income_obj.insert(String::from("week_amount"), Value::from(week_amount.to_string()));
+        //             income_obj.insert(String::from("name"), Value::from(name));
+        //             income_obj.insert(String::from("id"), Value::from(id.to_string()));
+        //             income_obj.insert(String::from("time"), Value::from(time));
+        //             income_obj.insert(String::from("amount"), Value::from(amount));
+        //             income_obj.insert(String::from("asset"), Value::from(asset));
+        //             trade_incomes.push_back(Value::from(income_obj));
+        //         } else {
+        //             continue;
+        //         }  
+        //     }
+                
+        // }
+            // println!("处理之后的账户资金账户数据{:?}", trade_incomes);
+            return Vec::from(trade_incomes.clone());
+        } else {
+            error!("Can't get {} income.", name);
+            return Vec::from(trade_incomes.clone());
+        }
+}
