@@ -1507,6 +1507,7 @@ pub async fn date_trade(mut payload: web::Payload, db_pool: web::Data<Pool>) -> 
     }
 
     let data = database::get_date_history_trades(db_pool.clone(), &obj.start_time, &obj.end_time, &obj.tra_id);
+    println!("交易历史{:?}", data);
     match data {
         Ok(histor_date_trade) => {
             return Ok(HttpResponse::Ok().json(Response {
