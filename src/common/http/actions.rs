@@ -427,6 +427,8 @@ pub async fn get_papi_account_asset(traders: HashMap<String, db_data::Trader>) -
 // 获取papi账户划转
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_papi_account_income(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {
+
+    println!("传过来的参数{:?}", traders);
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
