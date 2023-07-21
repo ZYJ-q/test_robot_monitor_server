@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use serde_json::Value;
 use mysql::*;
 
-use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts};
+use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts, get_papi_account_positions, get_papi_open_orders, get_klines_price};
 use crate::actors::adapters::bybit::parase::{get_account_bybit, get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_usdc_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
 
-use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi};
+use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi, BinancePapiApi, get_papi_account_sub};
 
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
@@ -75,6 +75,80 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
     // data.total.day_pnl = day_pnls.to_string();
     // data.total.week_pnl = week_pnls.to_string();
     // 发送信息
+    return data;
+}
+
+
+
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountPapiRe {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+    // println!("traders{:?}", traders);
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "Binance" => match value.r#type.as_str() {
+                "Papi" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(BinancePapiApi::new(
+                            "https://papi.binance.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+
+
+
+
+
+    // 预备数据
+    let mut data: http_data::AccountPapiRe = http_data::AccountPapiRe::new();
+
+    // 合成account数据
+    let mut subs: Vec<http_data::PapiSub> = Vec::new();
+
+
+    for (key, value) in &name_api {
+        let name = key;
+        let origin= &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let alarm = &traders.get(name).unwrap().show;
+
+        
+        
+        let res = get_papi_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
+        
+        match res {
+            Some(sub) => {
+                
+                subs.push(sub);
+            }
+            None => {
+                continue;
+            }
+        }
+        
+    }
+    data.papi_subs = subs;
+    // data.total.time = date;
+    // data.total.equity_eth = equities_eth.to_string();
+    // data.total.net_worth = (equities / origins).to_string();
+    // data.total.net_worth_eth = (equities_eth / origins).to_string();
+    // data.total.equity = equities.to_string();
+    // data.total.day_pnl = day_pnls.to_string();
+    // data.total.week_pnl = week_pnls.to_string();
+    // 发送信息
+
     return data;
 }
 
@@ -152,6 +226,49 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
     return data;
 }
 
+
+
+// 获取账户papi持仓数据
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_papi_history_position(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "Binance" => match value.r#type.as_str() {
+                "Papi" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(BinancePapiApi::new(
+                            "https://papi.binance.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    // 预备数据
+    let mut data: Vec<Value> = [].to_vec() ;
+
+    // 合成account数据
+    for (key, value) in &name_api {
+        let name = key;
+        let origin = &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let res = get_papi_account_positions(value, name, id, origin.parse().unwrap()).await;
+        data = res
+    }
+    // 发送信息
+    ;
+    return data;
+}
+
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
     // http池子、
@@ -223,6 +340,87 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
 }
 
 
+
+
+// 获取papi账户当前挂单数据
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_papi_history_open_order(traders: HashMap<String, db_data::Trader>) -> Vec<Value> {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "Binance" => match value.r#type.as_str() {
+                "Papi" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(BinancePapiApi::new(
+                            "https://papi.binance.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    // 预备数据
+    let mut data: Vec<Value> = [].to_vec() ;
+
+    // 合成account数据
+    for (key, value) in &name_api {
+        let name = key;
+        let origin = &traders.get(name).unwrap().ori_balance;
+        let id = &traders.get(name).unwrap().tra_id;
+        let res = get_papi_open_orders(value, name, id, origin.parse().unwrap()).await;
+        data = res
+    }
+    // 发送信息
+    ;
+    return data;
+}
+
+
+// 获取papi当前标记价格
+#[warn(dead_code, unused_variables, unused_mut)]
+pub async fn get_papi_kilines(traders: HashMap<String, db_data::Trader>, symbol: &str) -> Vec<Value> {
+    // http池子、
+    let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "Binance" => match value.r#type.as_str() {
+                "Papi" => {
+                    name_api.insert(
+                        String::from(key),
+                        Box::new(BinancePapiApi::new(
+                            "https://fapi.binance.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    // 预备数据
+    let mut data: Vec<Value> = [].to_vec() ;
+
+    // 合成account数据
+    for (key, value) in &name_api {
+        let res = get_klines_price(value, symbol).await;
+        data.push(res.into())
+    }
+    // 发送信息
+    ;
+    return data;
+}
 
 // 获取账户持仓数据
 #[warn(dead_code, unused_variables, unused_mut)]

@@ -87,6 +87,18 @@ pub struct Trade {
     pub token: String
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct PapiSub {
+    pub id: String,
+    pub name: String,
+    pub total_equity: String,
+    pub leverage: String,
+    pub open_order_amt: String,
+    pub position: String,
+    pub available_balance: String,
+    pub symbol: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DateTrade {
     pub tra_id: String,
@@ -257,6 +269,14 @@ pub struct Sub {
 }
 
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Klines {
+    pub symbol: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ByBitSub {
     pub id: String,
@@ -294,6 +314,20 @@ impl AccountByBitRe {
     pub fn new() -> Self {
         Self {
             bybit_subs: Vec::new(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AccountPapiRe {
+    // pub total: Total,
+    pub papi_subs: Vec<PapiSub>,
+}
+
+impl AccountPapiRe {
+    pub fn new() -> Self {
+        Self {
+            papi_subs: Vec::new(),
         }
     }
 }

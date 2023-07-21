@@ -4,7 +4,7 @@ use serde_json::{Map,Value};
 use std::collections::VecDeque;
 use std::fs;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use super::http_data::Sub;
+use super::http_data::{Sub, PapiSub };
 use super::base::venue_api::HttpVenueApi;
 
 pub async fn get_account_sub(
@@ -436,7 +436,250 @@ pub async fn get_income_data(
 }
 
 
+pub async fn get_klines_price(
+    http_api: &Box<dyn HttpVenueApi>,
+    symbol: &str,
+) -> Option<Value> {
+    if let Some(data) = http_api.get_klines(symbol).await {
+        let v: Value = serde_json::from_str(&data).unwrap();
+        return Some(v);
+    } else {
+        return None;
+    }
+}
 
+
+// papi
+// 账户信息
+pub async fn get_papi_account_sub(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+    alarm: &str,
+) -> Option<PapiSub> {
+    if let Some(data) = http_api.account().await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        let obj = value.as_object().unwrap();
+        let equity = obj.get("accountEquity").unwrap().as_str().unwrap();
+        let total_available_balance = obj.get("totalAvailableBalance").unwrap().as_str().unwrap();
+
+        if let Some(data) = http_api.position_risk().await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+
+
+
+
+
+            if let Some(data) = http_api.position_um().await {
+                let value: Value = serde_json::from_str(&data).unwrap();
+
+            let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
+        // let mut position: f64 = 0.0;
+        let mut amts: f64 = 0.0;
+        let mut prices: f64 = 0.0;
+        let mut new_symbol = "";
+
+        // let mut short_position: f64 = 0.0;
+        for p in positions {
+            let obj = p.as_object().unwrap();
+            let position_amt: f64 = obj.get("positionAmt").unwrap().as_str().unwrap().parse().unwrap();
+            
+            if position_amt == 0.0 {
+                continue;
+            } else {
+                println!("positions{:?}", obj);
+                
+            let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+            new_symbol= &symbol[0..symbol.len()-4];
+            // println!("symbols: {},symbol: {}", symbols, symbol);
+            amts += position_amt;
+            }
+
+        }
+        // let position = amts * prices;
+
+        // println!("账户本金{}, 名字{}", equity, name);
+
+
+        // let leverage = amts.abs() / equity; // 杠杆率 = 仓位价值 / 本金
+
+            
+
+            
+
+        
+
+        
+
+        if let Some(data) = http_api.get_open_orders("none").await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+            let open_orders = value.as_array().unwrap();
+            let open_order = open_orders.len();
+
+            // println!("当前挂单数量:{}, name:{}", open_order, name);
+
+            return Some(PapiSub {
+                id: String::from(id.to_string()),
+                name: String::from(name),
+                total_equity: format!("{}", equity),
+                leverage: format!("{}", 2),
+                position: format!("{}", amts),
+                open_order_amt: format!("{}", open_order),
+                available_balance: format!("{}", total_available_balance),
+                symbol:format!("{}USDT", new_symbol)
+            });
+        } else {
+            error!("Can't get {} openOrders.", name);
+        return None;
+            
+        }
+    }else {
+
+        error!("Can't get {} positions_um.", name);
+        return None;
+        
+    }
+    } else {
+        error!("Can't get {} positions.", name);
+        return None;
+        
+    }
+
+        
+    
+    } else {
+        error!("Can't get {} account.", name);
+        return None;
+    }
+}
+
+
+pub async fn get_papi_account_positions(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+) -> Vec<Value> {
+    let mut history_positions: VecDeque<Value> = VecDeque::new();
+    if let Some(data) = http_api.position_um().await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        // let mut history_positions: Vec<http_data::Position> = Vec::new();
+        
+        let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
+        for p in positions {
+            let mut pos_obj: Map<String, Value> = Map::new();
+            let obj = p.as_object().unwrap();
+            let amt:f64= obj.get("positionAmt").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+            let millis = obj.get("updateTime").unwrap().as_i64().unwrap();
+            let datetime: DateTime<Utc> = DateTime::from_utc(
+                NaiveDateTime::from_timestamp_millis(millis).unwrap(),
+                Utc,
+            );
+            let position_amt= obj.get("positionAmt").unwrap().as_str().unwrap();
+            // info!("datetime: {}", datetime);
+            let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+            let position_side = obj.get("positionSide").unwrap().as_str().unwrap();
+            let entry_price = obj.get("entryPrice").unwrap().as_str().unwrap();
+            let leverage = obj.get("leverage").unwrap().as_str().unwrap();
+            let mark_price = obj.get("initialMargin").unwrap().as_str().unwrap();
+            let unrealized_profit = obj.get("unrealizedProfit").unwrap().as_str().unwrap();
+
+            pos_obj.insert(String::from("symbol"), Value::from(symbol));
+            pos_obj.insert(String::from("position_amt"), Value::from(position_amt));
+            pos_obj.insert(String::from("time"), Value::from(time));
+            pos_obj.insert(String::from("position_side"), Value::from(position_side));
+            pos_obj.insert(String::from("entry_price"), Value::from(entry_price));
+            pos_obj.insert(String::from("leverage"), Value::from(leverage));
+            pos_obj.insert(String::from("mark_price"), Value::from(mark_price));
+            pos_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
+            // 新加的
+            pos_obj.insert(String::from("id"), Value::from(id.to_string()));
+
+            history_positions.push_back(Value::from(pos_obj));
+            }
+        }
+            return history_positions.into();
+    } else {
+        error!("Can't get {} account.", name);
+        return history_positions.into();
+    }
+}
+
+// 获取挂单明细
+pub async fn get_papi_open_orders(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+) -> Vec<Value> {
+    let mut history_open_orders: VecDeque<Value> = VecDeque::new();
+    if let Some(data) = http_api.get_open_orders("none").await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        // let mut history_positions: Vec<http_data::Position> = Vec::new();
+        println!("挂单数据{}", value);
+        
+        let open_orders = value.as_array().unwrap();
+        if open_orders.len() == 0 {
+            println!("当前没有挂单")
+        } else {
+            for a in open_orders {
+                let obj = a.as_object().unwrap();
+                let mut open_order_object: Map<String, Value> = Map::new();
+                let millis = obj.get("time").unwrap().as_i64().unwrap();
+                let datetime: DateTime<Utc> = DateTime::from_utc(
+                    NaiveDateTime::from_timestamp_millis(millis).unwrap(),
+                    Utc,
+                );
+                // info!("datetime: {}", datetime);
+                let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+                
+                let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+                let r#type = obj.get("type").unwrap().as_str().unwrap();
+                let mut type_value = "";
+                if r#type == "LIMIT" {
+                    type_value = "限价单"
+                } else if r#type == "MARKET" {
+                    type_value = "市价单"
+                } else if r#type == "STOP" {
+                    type_value = "止损限价单"
+                } else if r#type == "STOP_MARKET" {
+                    type_value = "止盈市价单"
+                } else if r#type == "TAKE_PROFIT" {
+                    type_value = "止盈限价单"
+                } else if r#type == "TAKE_PROFIT_MARKET" {
+                    type_value = "止盈市价单"
+                } else if r#type == "TRAILING_STOP_MARKET" {
+                    type_value = "跟踪止损单" 
+                }
+                let side = obj.get("side").unwrap().as_str().unwrap();
+                let price = obj.get("price").unwrap().as_str().unwrap();
+                let orig_qty = obj.get("origQty").unwrap().as_str().unwrap();
+                let executed_qty = obj.get("executedQty").unwrap().as_str().unwrap();
+                let reduce_only = obj.get("reduceOnly").unwrap().as_bool().unwrap();
+                open_order_object.insert(String::from("time"), Value::from(time.clone()));
+                open_order_object.insert(String::from("name"), Value::from(name));
+                open_order_object.insert(String::from("symbol"), Value::from(symbol));
+                open_order_object.insert(String::from("type"), Value::from(type_value));
+                open_order_object.insert(String::from("side"), Value::from(side));
+                open_order_object.insert(String::from("price"), Value::from(price));
+                open_order_object.insert(String::from("orig_qty"), Value::from(orig_qty));
+                open_order_object.insert(String::from("executed_qty"), Value::from(executed_qty));
+                open_order_object.insert(String::from("reduce_only"), Value::from(reduce_only));
+                history_open_orders.push_back(Value::from(open_order_object));
+                // println!("11111{}", vec[a]);
+            }
+        }
+            return history_open_orders.into();
+    } else {
+        error!("Can't get {} account.", name);
+        return history_open_orders.into();
+    }
+}
 
 
 

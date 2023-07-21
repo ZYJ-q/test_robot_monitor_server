@@ -13,14 +13,14 @@ use std::collections::HashMap;
 use super::http::HttpClient;
 use super::base::venue_api::HttpVenueApi;
 
-pub struct BinanceFuturesApi {
+pub struct BinancePapiApi {
     client: HttpClient,
     base_url: String,
     api_key: String,
     api_secret: String,
 }
 
-impl BinanceFuturesApi {
+impl BinancePapiApi {
     pub fn new(base_url: &str, api_key: &str, api_secret: &str) -> Self {
         let http_client = HttpClient::new();
         Self {
@@ -163,7 +163,7 @@ impl BinanceFuturesApi {
 }
 
 #[async_trait]
-impl HttpVenueApi for BinanceFuturesApi {
+impl HttpVenueApi for BinancePapiApi {
     async fn account(&self) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
 
@@ -171,7 +171,7 @@ impl HttpVenueApi for BinanceFuturesApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v2/account", true, &mut params)
+            .send(Method::GET, "/papi/v1/account", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
@@ -193,7 +193,7 @@ impl HttpVenueApi for BinanceFuturesApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v2/positionRisk", true, &mut params)
+            .send(Method::GET, "/papi/v1/balance", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
@@ -207,28 +207,29 @@ impl HttpVenueApi for BinanceFuturesApi {
             }
         }
     }
+
 
     async fn position_um(&self) -> Option<String> {
-        let mut params: HashMap<String, Value> = HashMap::new();
-  
-        let now_time = Utc::now().timestamp_millis();
-        params.insert(String::from("timestamp"), Value::from(now_time));
-  
-        let response = self
-            .send(Method::GET, "/papi/v1/um/account", true, &mut params)
-            .await;
-  
-        let res_data = self.check_response_data(response);
-  
-        match res_data {
-            Some(data) => {
-                return Some(data);
-            }
-            None => {
-                return None;
-            }
-        }
-    }
+      let mut params: HashMap<String, Value> = HashMap::new();
+
+      let now_time = Utc::now().timestamp_millis();
+      params.insert(String::from("timestamp"), Value::from(now_time));
+
+      let response = self
+          .send(Method::GET, "/papi/v1/um/account", true, &mut params)
+          .await;
+
+      let res_data = self.check_response_data(response);
+
+      match res_data {
+          Some(data) => {
+              return Some(data);
+          }
+          None => {
+              return None;
+          }
+      }
+  }
 
     async fn trade_hiostory(&self, symbol: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
@@ -334,7 +335,7 @@ impl HttpVenueApi for BinanceFuturesApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v1/openOrders", true, &mut params)
+            .send(Method::GET, "/papi/v1/um/openOrders", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
