@@ -364,10 +364,12 @@ impl HttpVenueApi for BinancePapiApi {
             .await;
 
         let res_data = self.check_response_data(response);
+        println!("账户流水{:?}", res_data);
 
         match res_data {
+          
             Some(data) => {
-              println!("账户流水{}", data);
+              
                 return Some(data);
             }
             None => {
