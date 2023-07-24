@@ -58,7 +58,7 @@ pub async fn get_account_sub(
 
             if wallet_balance != 0.00 {
                 
-                if symbol == "BNB" {
+                if symbol == "BNB" && name == "trader02" {
                     continue;
                 }
                 if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
@@ -780,7 +780,7 @@ pub async fn get_papi_income_data(
             println!("获取基金流水{:?}", value);
             let incomes = value.as_array().unwrap();
             if incomes.len() == 0 {
-                
+
             }
 
 
