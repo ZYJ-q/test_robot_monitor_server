@@ -58,8 +58,11 @@ pub async fn get_account_sub(
 
             if wallet_balance != 0.00 {
                 
-                if symbol == "BNB" && name == "trader02" {
+                if symbol == "BNB"{
                     continue;
+                }
+                if symbol == "ETH" {
+                    continue;     
                 }
                 if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
                     let asset = format!("{}USDT", symbol);
@@ -458,14 +461,34 @@ pub async fn get_papi_account_sub(
     origin_balance: f64,
     alarm: &str,
 ) -> Option<PapiSub> {
-    if let Some(data) = http_api.account().await {
-        let value: Value = serde_json::from_str(&data).unwrap();
-        let obj = value.as_object().unwrap();
-        let equity = obj.get("accountEquity").unwrap().as_str().unwrap();
-        let total_available_balance = obj.get("totalAvailableBalance").unwrap().as_str().unwrap();
 
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
+            let assets = value.as_array().unwrap();
+            let mut equity = 0.0;
+            let mut total_available_balance = 0.0;
+
+        for p in assets {
+            let obj = p.as_object().unwrap();
+            let amt:f64 = obj.get("totalWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = obj.get("asset").unwrap().as_str().unwrap();
+                if symbol == "BTC" {
+                    continue;
+                } else {
+                    let unrealied_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+                    let unrealied_cm:f64 = obj.get("cmUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+                    let unrealied = unrealied_cm + unrealied_um;
+                    let total_equity = unrealied + amt;
+                    equity += total_equity;
+                    total_available_balance += amt;  
+                }
+            }
+
+            
+        }
 
 
 
@@ -544,13 +567,6 @@ pub async fn get_papi_account_sub(
         error!("Can't get {} positions.", name);
         return None;
         
-    }
-
-        
-    
-    } else {
-        error!("Can't get {} account.", name);
-        return None;
     }
 }
 
@@ -704,12 +720,11 @@ pub async fn get_papi_history_accounts(
                 continue;
             } else {
                 let symbol = obj.get("asset").unwrap().as_str().unwrap();
-                let um_wallet_balance:f64 = obj.get("umWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
-
-                if um_wallet_balance == 0.0 {
                     let wallet_balance= obj.get("totalWalletBalance").unwrap().as_str().unwrap();
-            let unrealized_profit = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap();
-            let margin_balance = obj.get("crossMarginFree").unwrap().as_str().unwrap();
+            let unrealized_profit_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+            let unrealized_profit_cm: f64 = obj.get("cmUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap(); 
+            let unrealized_profit = unrealized_profit_cm + unrealized_profit_um;
+            let margin_balance = amt + unrealized_profit;
             let available_balance = obj.get("crossMarginFree").unwrap().as_str().unwrap();
 
             asset_obj.insert(String::from("symbol"), Value::from(symbol));
@@ -721,40 +736,7 @@ pub async fn get_papi_history_accounts(
             asset_obj.insert(String::from("id"), Value::from(id.to_string()));
 
             history_assets.push_back(Value::from(asset_obj));
-
-                }
             }
-        }
-
-        if let Some(data) = http_api.position_um().await {
-            let value: Value = serde_json::from_str(&data).unwrap();
-            let assetes = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
-            for a in assetes{
-                let mut assete_obj: Map<String, Value> = Map::new();
-                let obj = a.as_object().unwrap();
-                let balance:f64 = obj.get("crossWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
-                if balance == 0.0 {
-                    continue;
-                } else {
-                    let symbol = obj.get("asset").unwrap().as_str().unwrap();
-                    let cross_wallet_balance = obj.get("crossWalletBalance").unwrap().as_str().unwrap();
-                    let cross_un_pnl = obj.get("crossUnPnl").unwrap().as_str().unwrap();
-                    let maint_margin = obj.get("maintMargin").unwrap().as_str().unwrap();
-                    let available_balance = obj.get("crossWalletBalance").unwrap().as_str().unwrap();
-
-                    assete_obj.insert(String::from("symbol"), Value::from(symbol));
-                    assete_obj.insert(String::from("wallet_balance"), Value::from(cross_wallet_balance));
-                    assete_obj.insert(String::from("unrealized_profit"), Value::from(cross_un_pnl));
-                    assete_obj.insert(String::from("margin_balance"), Value::from(maint_margin));
-                    assete_obj.insert(String::from("availableBalance"), Value::from(available_balance));
-// 新加的
-assete_obj.insert(String::from("id"), Value::from(id.to_string()));
-
-history_assets.push_back(Value::from(assete_obj));
-
-
-                }
-            } 
         }
             return history_assets.into();
     } else {
