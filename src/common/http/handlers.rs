@@ -1,4 +1,5 @@
 use actix_web::{error, web, Error, HttpResponse};
+use chrono::Utc;
 use futures_util::StreamExt as _;
 use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
@@ -720,7 +721,11 @@ pub async fn get_total_bybit_equity(mut payload: web::Payload, db_pool: web::Dat
 
 
 // 获取bian权益数据（显示资金曲线）
+
 pub async fn get_total_bian_equity(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    let now = Utc::now();
+    let date = format!("{}", now.format("%Y/%m/%d %H:%M:%S"));
+    println!("开始时间{}", date);
     // payload is a stream of Bytes objects
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -745,16 +750,23 @@ pub async fn get_total_bian_equity(mut payload: web::Payload, db_pool: web::Data
     let date =  database::get_total_bian_equity(db_pool.clone(), &obj.name);
         match date {
             Ok(traders) => {
+                let end_now = Utc::now();
+               let end_date = format!("{}", end_now.format("%Y/%m/%d %H:%M:%S"));
+               println!("结束时间{}", end_date);
                 return Ok(HttpResponse::Ok().json(Response {
                     status: 200,
                     data: traders,
                 }));
+                
             }
             Err(e) => {
+                println!("错误返回代码{}", e);
                 return Err(error::ErrorInternalServerError(e));
             }
             
         }
+
+    
 }
 
 

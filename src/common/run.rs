@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use actix_web::{middleware, web, App, HttpServer};
+use chrono::Utc;
 
 
 use super::database;
@@ -75,6 +76,10 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
     })
     .bind((ip.as_str(), 8081))?
     .run();
+
+               let end_now = Utc::now();
+               let end_date = format!("{}", end_now.format("%Y/%m/%d %H:%M:%S"));
+               println!("结束mian时间{}", end_date);
 
     return server.await;
 }
