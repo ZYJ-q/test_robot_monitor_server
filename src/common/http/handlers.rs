@@ -750,9 +750,6 @@ pub async fn get_total_bian_equity(mut payload: web::Payload, db_pool: web::Data
     let date =  database::get_total_bian_equity(db_pool.clone(), &obj.name);
         match date {
             Ok(traders) => {
-                let end_now = Utc::now();
-               let end_date = format!("{}", end_now.format("%Y/%m/%d %H:%M:%S"));
-               println!("结束时间{}", end_date);
                 return Ok(HttpResponse::Ok().json(Response {
                     status: 200,
                     data: traders,

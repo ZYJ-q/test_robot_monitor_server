@@ -782,7 +782,7 @@ pub fn get_total_bian_equity(
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
-        // println!("bian权益数据{:?}", equitys);
+        println!("bian权益数据{:?}", equitys);
         return Ok(equitys);
 }
 
