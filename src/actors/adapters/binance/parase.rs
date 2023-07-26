@@ -64,18 +64,6 @@ pub async fn get_account_sub(
                 if symbol == "ETH" {
                     continue;     
                 }
-                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
-                    let asset = format!("{}USDT", symbol);
-                    if let Some(data) = http_api.get_klines(&asset).await {
-                        let v: Value = serde_json::from_str(&data).unwrap();
-                        let price_obj = v.as_object().unwrap();
-                        let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
-                        best_price = price;
-                        let new_price = wallet_balance * price;
-                        new_total_balance += new_price;
-                        new_total_equity += new_price;
-                    }
-                }
 
                 let cross_un_pnl: f64 = obj.get("crossUnPnl").unwrap().as_str().unwrap().parse().unwrap();
                 let pnl = cross_un_pnl + wallet_balance;
@@ -462,11 +450,15 @@ pub async fn get_papi_account_sub(
     alarm: &str,
 ) -> Option<PapiSub> {
 
+    if let Some (data) = http_api.account().await{
+        let value: Value = serde_json::from_str(&data).unwrap();
+        println!("账户信息{}", value);
+        let total_available_balance = value.as_object().unwrap().get("totalAvailableBalance").unwrap().as_str().unwrap();
+
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
             let assets = value.as_array().unwrap();
             let mut equity = 0.0;
-            let mut total_available_balance = 0.0;
 
         for p in assets {
             let obj = p.as_object().unwrap();
@@ -483,7 +475,6 @@ pub async fn get_papi_account_sub(
                     let unrealied = unrealied_cm + unrealied_um;
                     let total_equity = unrealied + amt;
                     equity += total_equity;
-                    total_available_balance += amt;  
                 }
             }
 
@@ -568,6 +559,11 @@ pub async fn get_papi_account_sub(
         return None;
         
     }
+} else {
+    error!("Can't get {} positions.", name);
+        return None;
+    
+}
 }
 
 
