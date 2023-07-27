@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, Product, Trader, ClearData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, ClearData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::SignInProRes;
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -294,6 +294,50 @@ pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
     // }
     
     return Ok(res);
+}
+
+// 查看账户是否被监控数据
+pub fn get_account_data(pool: web::Data<Pool>, account_id: &u64) -> Result<Vec<AccountData>> {
+    let mut traders: Vec<AccountData> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+    .exec_first(
+                r"select * from test_acc_tra where acc_id = :acc_id",
+                params! {
+                        "acc_id" => account_id
+                        },
+                )
+                .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(
+                                |(
+                                    ap_id,
+                                    acc_id,
+                                    tra_id
+                                )| AccountData {
+                                    ap_id,
+                                    acc_id,
+                                    tra_id
+                                },
+                            )
+                        },
+                    );
+                    match res {
+                        Ok(trader) => match trader {
+                            Some(tra) => {
+                                traders.push(tra);
+                            }
+                            None => {
+                                return Ok(traders);
+                            }
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    }
+    return Ok(traders);
+
 }
 
 

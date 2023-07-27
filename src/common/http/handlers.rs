@@ -261,6 +261,45 @@ pub async fn single_papi_account(mut payload: web::Payload, db_pool: web::Data<P
     }
 }
 
+
+// 获取该账户是否监控该数据
+pub async fn alarm_account_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectTraders>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::get_account_data(db_pool.clone(), &obj.account_id); 
+    match data {
+        Ok(traders) => {
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: traders,
+            }));
+        }
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
 pub async fn papi_positions(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
     let mut body = web::BytesMut::new();

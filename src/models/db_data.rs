@@ -80,6 +80,13 @@ pub struct Trader {
     pub threshold: String
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AccountData {
+    pub ap_id: u64,
+    pub acc_id: u64,
+    pub tra_id: u64
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Trade {
     pub th_id: u64,
