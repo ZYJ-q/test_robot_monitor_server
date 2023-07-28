@@ -77,8 +77,8 @@ pub struct Trader {
     pub name: String,
     pub alarm: String,
     pub threshold: String,
-    pub borrow_currency: String,
-    pub thres_amount: String
+    pub borrow: String,
+    pub amount: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

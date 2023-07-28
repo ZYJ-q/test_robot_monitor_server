@@ -50,7 +50,7 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
+        let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
         let res = get_account_sub(value, name, id, &borrow_currency, origin.parse().unwrap(), &alarm).await;
         match res {
@@ -124,7 +124,7 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
         let origin= &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().alarm;
-        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
+        let borrow_currency = &traders.get(name).unwrap().borrow;
 
         
         
@@ -197,7 +197,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
+        let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
         let res = get_account_bybit(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
         
@@ -314,7 +314,7 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
+        let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
         let res = get_account_sub(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
         match res {
