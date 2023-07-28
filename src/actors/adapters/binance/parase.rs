@@ -12,7 +12,6 @@ pub async fn get_account_sub(
     name: &str,
     id: &u64,
     borrow_currency: &str,
-    origin_balance: f64,
     alarm: &str,
 ) -> Option<Sub> {
     if let Some(data) = http_api.account().await {
@@ -73,7 +72,7 @@ pub async fn get_account_sub(
         let total_wallet_balance: f64 = ((new_total_balance / best_price) - 28.97086) * best_price;
         // 权益
         let new_total_equity_eth: f64 = ((new_total_equity / best_price) - 28.97086) * best_price;
-        let net_worth = new_total_equity / origin_balance;
+        // let net_worth = new_total_equity / origin_balance;
         
         // let total_balance: f64 = value
         //     .as_object()
@@ -176,7 +175,7 @@ pub async fn get_account_sub(
                 leverage_eth: format!("{}", leverage_eth),
                 position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
-                net_worth: format!("{}", net_worth),
+                net_worth: format!("{}", ""),
                 // day_transaction_price: format!("{}", day_transaction_price),
                 // week_transaction_price: format!("{}", week_transaction_price),
                 // day_pnl: format!("{}", day_pnl ),
@@ -201,7 +200,6 @@ pub async fn get_account_positions(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_positions: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.account().await {
@@ -257,7 +255,6 @@ pub async fn get_open_orders(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_open_orders: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.get_open_orders("none").await {
@@ -327,7 +324,6 @@ pub async fn get_history_accounts(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_assets: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.account().await {
@@ -445,7 +441,6 @@ pub async fn get_papi_account_sub(
     name: &str,
     id: &u64,
     borrow_currency: &str,
-    origin_balance: f64,
     alarm: &str,
 ) -> Option<PapiSub> {
 
@@ -568,7 +563,6 @@ pub async fn get_papi_account_positions(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_positions: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.position_um().await {
@@ -624,7 +618,6 @@ pub async fn get_papi_open_orders(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_open_orders: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.get_open_orders("none").await {
@@ -697,7 +690,6 @@ pub async fn get_papi_history_accounts(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
-    origin_balance: f64,
 ) -> Vec<Value> {
     let mut history_assets: VecDeque<Value> = VecDeque::new();
     if let Some(data) = http_api.position_risk().await {

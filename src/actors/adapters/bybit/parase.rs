@@ -13,7 +13,6 @@ pub async fn get_account_bybit(
   name: &str,
   id: &u64,
   borrow_currency: &str,
-  origin_balance: f64,
   alarm: &str,
 ) -> Option<ByBitSub> {
   if let Some(data) = http_api.account().await {
@@ -69,7 +68,7 @@ pub async fn get_account_bybit(
       }
       
 
-      let net_worth = equity / origin_balance;
+      // let net_worth = equity / origin_balance;
       let category_spot = "spot";
       let category_lear = "linear";
 
@@ -142,7 +141,7 @@ pub async fn get_account_bybit(
                   leverage: format!("{}", leverage),
                   position: format!("{}", amts),
                   open_order_amt: format!("{}", new_open_orders),
-                  net_worth: format!("{}", net_worth),
+                  net_worth: format!("{}", ""),
                   available_balance: format!("{}", wallet_balance),
               });
 
@@ -156,7 +155,7 @@ pub async fn get_account_bybit(
                 leverage: format!("{}", leverage),
                 position: format!("{}", amts),
                 open_order_amt: format!("{}", open_orders),
-                net_worth: format!("{}", net_worth),
+                net_worth: format!("{}", ""),
                 available_balance: format!("{}", wallet_balance),
             });
                   
@@ -172,7 +171,7 @@ pub async fn get_account_bybit(
                 leverage: format!("{}", leverage),
                 position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
-                net_worth: format!("{}", net_worth),
+                net_worth: format!("{}", ""),
                 available_balance: format!("{}", wallet_balance),
             });      
           }
@@ -185,7 +184,7 @@ pub async fn get_account_bybit(
             leverage: format!("{}", leverage),
             position: format!("{}", amts),
             open_order_amt: format!("{}", 0),
-            net_worth: format!("{}", net_worth),
+            net_worth: format!("{}",""),
             available_balance: format!("{}", wallet_balance),
         });   
       }
@@ -198,7 +197,7 @@ pub async fn get_account_bybit(
           leverage: format!("{}", 0),
           position: format!("{}", 0),
           open_order_amt: format!("{}", 0),
-          net_worth: format!("{}", net_worth),
+          net_worth: format!("{}", ""),
           available_balance: format!("{}", wallet_balance),
       });
         
@@ -217,7 +216,6 @@ pub async fn get_futures_bybit_positions(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
       let category_lear = "linear";
   let mut history_positions: VecDeque<Value> = VecDeque::new();
@@ -281,7 +279,6 @@ pub async fn get_spot_bybit_positions(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
       let category_lear = "spot";
       let mut history_assets: VecDeque<Value> = VecDeque::new();
@@ -374,7 +371,6 @@ pub async fn get_bybit_futures_open_orders(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
   let category_lear = "linear";
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
@@ -439,7 +435,6 @@ pub async fn get_bybit_spot_open_orders(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
   let category_lear = "spot";
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
@@ -504,7 +499,6 @@ pub async fn get_bybit_usdc_open_orders(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
   let mut history_open_orders: VecDeque<Value> = VecDeque::new();
   if let Some(data) = http_api.get_open_orders_usdc().await {
@@ -567,7 +561,6 @@ pub async fn get_bybit_history_accounts(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
-  origin_balance: f64,
 ) -> Vec<Value> {
   let mut history_assets: VecDeque<Value> = VecDeque::new();
   if let Some(data) = http_api.account().await {

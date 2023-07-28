@@ -48,11 +48,10 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
     // let date = format!("{}", now.format("%Y/%m/%d %H:%M:%S"));
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_sub(value, name, id, &borrow_currency, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_sub(value, name, id, &borrow_currency,  &alarm).await;
         match res {
             Some(sub) => {
                 // equities += sub.total_equity.parse::<f64>().unwrap();
@@ -121,14 +120,13 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
 
     for (key, value) in &name_api {
         let name = key;
-        let origin= &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().alarm;
         let borrow_currency = &traders.get(name).unwrap().borrow;
 
         
         
-        let res = get_papi_account_sub(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
+        let res = get_papi_account_sub(value, name, id, borrow_currency, &alarm).await;
         
         match res {
             Some(sub) => {
@@ -195,11 +193,10 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
 
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_bybit(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_bybit(value, name, id, borrow_currency, &alarm).await;
         
         match res {
             Some(sub) => {
@@ -262,9 +259,8 @@ pub async fn get_papi_history_position(traders: HashMap<String, db_data::Trader>
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_papi_account_positions(value, name, id, origin.parse().unwrap()).await;
+        let res = get_papi_account_positions(value, name, id, ).await;
         data = res
     }
     // 发送信息
@@ -312,11 +308,10 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
     // let date = format!("{}", now.format("%Y/%m/%d %H:%M:%S"));
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
         let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_sub(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_sub(value, name, id, borrow_currency, &alarm).await;
         match res {
             Some(sub) => {
                 subs.push(sub);
@@ -372,9 +367,8 @@ pub async fn get_papi_history_open_order(traders: HashMap<String, db_data::Trade
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_papi_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_papi_open_orders(value, name, id, ).await;
         data = res
     }
     // 发送信息
@@ -413,9 +407,8 @@ pub async fn get_papi_account_asset(traders: HashMap<String, db_data::Trader>) -
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_papi_history_accounts(value, name, id, origin.parse().unwrap()).await;
+        let res = get_papi_history_accounts(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -535,9 +528,8 @@ pub async fn get_history_position(traders: HashMap<String, db_data::Trader>) -> 
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_account_positions(value, name, id, origin.parse().unwrap()).await;
+        let res = get_account_positions(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -577,9 +569,8 @@ pub async fn get_bybit_position(traders: HashMap<String, db_data::Trader>) -> Ve
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_futures_bybit_positions(value, name, id, origin.parse().unwrap()).await;
+        let res = get_futures_bybit_positions(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -620,9 +611,8 @@ pub async fn get_bybit_spot_position(traders: HashMap<String, db_data::Trader>) 
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_spot_bybit_positions(value, name, id, origin.parse().unwrap()).await;
+        let res = get_spot_bybit_positions(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -661,9 +651,8 @@ pub async fn get_history_open_order(traders: HashMap<String, db_data::Trader>) -
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_open_orders(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -705,9 +694,8 @@ pub async fn get_bybit_futures_open_order(traders: HashMap<String, db_data::Trad
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_bybit_futures_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_bybit_futures_open_orders(value, name, id, ).await;
         data = res
     }
     // 发送信息
@@ -748,9 +736,8 @@ pub async fn get_bybit_spot_open_order(traders: HashMap<String, db_data::Trader>
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_bybit_spot_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_bybit_spot_open_orders(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -791,9 +778,8 @@ pub async fn get_bybit_usdc_open_order(traders: HashMap<String, db_data::Trader>
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_bybit_usdc_open_orders(value, name, id, origin.parse().unwrap()).await;
+        let res = get_bybit_usdc_open_orders(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -832,9 +818,8 @@ pub async fn get_history_account(traders: HashMap<String, db_data::Trader>) -> V
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_history_accounts(value, name, id, origin.parse().unwrap()).await;
+        let res = get_history_accounts(value, name, id).await;
         data = res
     }
     // 发送信息
@@ -875,9 +860,8 @@ pub async fn get_bybit_history_account(traders: HashMap<String, db_data::Trader>
     // 合成account数据
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
-        let res = get_bybit_history_accounts(value, name, id, origin.parse().unwrap()).await;
+        let res = get_bybit_history_accounts(value, name, id).await;
         data = res
     }
     // 发送信息

@@ -225,17 +225,15 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
         r"select * from trader",
         |(tra_id,
             tra_venue,
-            ori_balance,
             tra_currency,
             api_key,
             secret_key,
             r#type,
             name,
             alarm,
-            threshold, borrow, amount)| Trader {
+            threshold, borrow, amount, wx_hook)| Trader {
                 tra_id,
                 tra_venue,
-                ori_balance,
                 tra_currency,
                 api_key,
                 secret_key,
@@ -245,6 +243,7 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
                 threshold,
                 borrow,
                 amount,
+                wx_hook
             }
     ).unwrap();
 
@@ -265,17 +264,15 @@ pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
         r"select * from trader",
         |(tra_id,
             tra_venue,
-            ori_balance,
             tra_currency,
             api_key,
             secret_key,
             r#type,
             name,
             alarm,
-            threshold, borrow, amount)| Trader {
+            threshold, borrow, amount, wx_hook)| Trader {
                 tra_id,
                 tra_venue,
-                ori_balance,
                 tra_currency,
                 api_key,
                 secret_key,
@@ -285,6 +282,7 @@ pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
                 threshold,
                 borrow,
                 amount,
+                wx_hook
             }
     ).unwrap();
 
@@ -320,10 +318,9 @@ pub fn get_account_data(pool: web::Data<Pool>, account_id: &u64) -> Result<Vec<A
 pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str, ori_balance:&str, api_key: &str, secret_key:&str, r#type: &str, name: &str, alarm: &str, threshold:&str, thres_amount: &str, borrow_currency: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"insert into trader (tra_venue, ori_balance, tra_currency, api_key, secret_key, type, name, alarm, threshold, borrow, amount) values (:tra_venue, :ori_balance, :tra_currency, :api_key, :secret_key, :type, :name, :alarm, :threshold, :borrow, :amount)",
+        r"insert into trader (tra_venue, tra_currency, api_key, secret_key, type, name, alarm, threshold, borrow, amount, wx_hook) values (:tra_venue, :tra_currency, :api_key, :secret_key, :type, :name, :alarm, :threshold, :borrow, :amount, :wx_hook)",
         params! {
             "tra_venue" => tra_venue,
-            "ori_balance" => ori_balance,
             "tra_currency" => tra_currency,
             "api_key" => api_key,
             "secret_key" =>  secret_key,
@@ -333,6 +330,7 @@ pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str,
             "threshold" => threshold,
             "borrow" => borrow_currency,
             "amount" => thres_amount,
+            "wx_hook" => ori_balance,
         },
     );
     match res {
@@ -392,17 +390,15 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                         |row| {
                             row.map(|(tra_id,
                                 tra_venue,
-                                ori_balance,
                                 tra_currency,
                                 api_key,
                                 secret_key,
                                 r#type,
                                 name,
                                 alarm,
-                                threshold, borrow,amount)| Trader {
+                                threshold, borrow,amount, wx_hook)| Trader {
                                 tra_id,
                 tra_venue,
-                ori_balance,
                 tra_currency,
                 api_key,
                 secret_key,
@@ -412,6 +408,7 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                 threshold,
                                     borrow,
                                     amount,
+                                    wx_hook
                             })
                         },
                     );
@@ -450,7 +447,6 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
             |row| {
                 row.map(|(tra_id,
                     tra_venue,
-                    ori_balance,
                     tra_currency,
                     api_key,
                     secret_key,
@@ -459,10 +455,9 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
                     alarm,
                     threshold,
                     borrow,
-                    amount,)| Trader {
+                    amount, wx_hook)| Trader {
                     tra_id,
                     tra_venue,
-                    ori_balance,
                     tra_currency,
                     api_key,
                     secret_key,
@@ -472,6 +467,7 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
                     threshold,
                     borrow,
                     amount,
+                    wx_hook
                 })
             },
         );
@@ -522,20 +518,6 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
                                 |(
                                     tra_id,
                                     tra_venue,
-                                    ori_balance,
-                                    tra_currency,
-                                    api_key,
-                                    secret_key,
-                                    r#type,
-                                    name,
-                                    alarm,
-                                    threshold,
-                                    borrow,
-                                    amount
-                                )| Trader {
-                                    tra_id,
-                                    tra_venue,
-                                    ori_balance,
                                     tra_currency,
                                     api_key,
                                     secret_key,
@@ -545,6 +527,20 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
                                     threshold,
                                     borrow,
                                     amount,
+                                    wx_hook
+                                )| Trader {
+                                    tra_id,
+                                    tra_venue,
+                                    tra_currency,
+                                    api_key,
+                                    secret_key,
+                                    r#type,
+                                    name,
+                                    alarm,
+                                    threshold,
+                                    borrow,
+                                    amount,
+                                    wx_hook
                                 },
                             )
                         },
@@ -574,8 +570,8 @@ pub fn get_trader_incomes(pool: web::Data<Pool>) -> Result<HashMap<String, Trade
     let mut conn = pool.get_conn().unwrap();
     let res = conn.query_map(
         "select * from trader",
-        |(tra_id, tra_venue, ori_balance, tra_currency, api_key, secret_key, r#type, name, alarm, threshold, borrow, amount)| {
-            Trader{ tra_id, tra_venue, ori_balance, tra_currency, api_key, secret_key,  r#type, name, alarm, threshold, borrow, amount }
+        |(tra_id, tra_venue, tra_currency, api_key, secret_key, r#type, name, alarm, threshold, borrow, amount, wx_hook)| {
+            Trader{ tra_id, tra_venue,  tra_currency, api_key, secret_key,  r#type, name, alarm, threshold, borrow, amount, wx_hook }
         }
         ).unwrap(); 
 
@@ -702,20 +698,6 @@ pub fn get_trader_positions(pool: web::Data<Pool>, tra_id: &str) -> Result<HashM
                                 |(
                                     tra_id,
                                     tra_venue,
-                                    ori_balance,
-                                    tra_currency,
-                                    api_key,
-                                    secret_key,
-                                    r#type,
-                                    name,
-                                    alarm,
-                                    threshold,
-                                    borrow,
-                                    amount
-                                )| Trader {
-                                    tra_id,
-                                    tra_venue,
-                                    ori_balance,
                                     tra_currency,
                                     api_key,
                                     secret_key,
@@ -725,6 +707,20 @@ pub fn get_trader_positions(pool: web::Data<Pool>, tra_id: &str) -> Result<HashM
                                     threshold,
                                     borrow,
                                     amount,
+                                    wx_hook
+                                )| Trader {
+                                    tra_id,
+                                    tra_venue,
+                                    tra_currency,
+                                    api_key,
+                                    secret_key,
+                                    r#type,
+                                    name,
+                                    alarm,
+                                    threshold,
+                                    borrow,
+                                    amount,
+                                    wx_hook
 
                                 },
                             )

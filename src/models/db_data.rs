@@ -69,7 +69,6 @@ pub struct Active {
 pub struct Trader {
     pub tra_id: u64,
     pub tra_venue: String,
-    pub ori_balance: String,
     pub tra_currency: String,
     pub api_key: String,
     pub secret_key: String,
@@ -78,7 +77,8 @@ pub struct Trader {
     pub alarm: String,
     pub threshold: String,
     pub borrow: String,
-    pub amount: String
+    pub amount: String,
+    pub wx_hook: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
