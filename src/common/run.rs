@@ -74,6 +74,9 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/get_papi_equity").route(web::post().to(handlers::get_total_papi_bian_equity)))
             .service(web::resource("/get_account_list").route(web::post().to(handlers::account_list)))
             .service(web::resource("/get_account_data").route(web::post().to(handlers::alarm_account_data)))
+            .service(web::resource("/insert_trader").route(web::post().to(handlers::insert_trader)))
+            .service(web::resource("/insert_account").route(web::post().to(handlers::insert_account)))
+            .service(web::resource("/insert_weixin").route(web::post().to(handlers::insert_weixins)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

@@ -67,6 +67,41 @@ pub struct SelectTraders {
 
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SelectAccounts {
+    pub name: String,
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SelectWeixin {
+    pub wx_name: String,
+    pub wx_hook: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InsertAccount {
+    pub token: String,
+    pub tra_venue: String, 
+    pub tra_currency: String, 
+    pub ori_balance: String, 
+    pub api_key: String, 
+    pub secret_key: String, 
+    pub r#type: String, 
+    pub name: String, 
+    pub alarm: String, 
+    pub threshold: String, 
+    pub thres_amount: String, 
+    pub borrow_currency: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AccountEquity {
     // pub prod_id: String,
     pub r#type: String,

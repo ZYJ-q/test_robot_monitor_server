@@ -73,11 +73,12 @@ pub struct Trader {
     pub tra_currency: String,
     pub api_key: String,
     pub secret_key: String,
-    pub other_keys: String,
     pub r#type: String,
     pub name: String,
     pub show: String,
-    pub threshold: String
+    pub threshold: String,
+    pub borrow_currency: String,
+    pub thres_amount: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

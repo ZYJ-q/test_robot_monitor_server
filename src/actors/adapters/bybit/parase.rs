@@ -12,6 +12,7 @@ pub async fn get_account_bybit(
   http_api: &Box<dyn HttpVenueApi>,
   name: &str,
   id: &u64,
+  borrow_currency: &str,
   origin_balance: f64,
   alarm: &str,
 ) -> Option<ByBitSub> {

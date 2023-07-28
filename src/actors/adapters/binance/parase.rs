@@ -11,6 +11,7 @@ pub async fn get_account_sub(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
+    borrow_currency: &str,
     origin_balance: f64,
     alarm: &str,
 ) -> Option<Sub> {
@@ -58,11 +59,8 @@ pub async fn get_account_sub(
 
             if wallet_balance != 0.00 {
                 
-                if symbol == "BNB"{
+                if symbol == borrow_currency{
                     continue;
-                }
-                if symbol == "ETH" {
-                    continue;     
                 }
 
                 let cross_un_pnl: f64 = obj.get("crossUnPnl").unwrap().as_str().unwrap().parse().unwrap();
@@ -446,6 +444,7 @@ pub async fn get_papi_account_sub(
     http_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
+    borrow_currency: &str,
     origin_balance: f64,
     alarm: &str,
 ) -> Option<PapiSub> {
@@ -467,7 +466,7 @@ pub async fn get_papi_account_sub(
                 continue;
             } else {
                 let symbol = obj.get("asset").unwrap().as_str().unwrap();
-                if symbol == "BTC" {
+                if symbol == borrow_currency {
                     continue;
                 } else {
                     let unrealied_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
@@ -476,9 +475,7 @@ pub async fn get_papi_account_sub(
                     let total_equity = unrealied + amt;
                     equity += total_equity;
                 }
-            }
-
-            
+            } 
         }
 
 

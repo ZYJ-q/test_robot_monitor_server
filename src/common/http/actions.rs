@@ -50,8 +50,9 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
+        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
         let alarm = &traders.get(name).unwrap().show;
-        let res = get_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_sub(value, name, id, &borrow_currency, origin.parse().unwrap(), &alarm).await;
         match res {
             Some(sub) => {
                 // equities += sub.total_equity.parse::<f64>().unwrap();
@@ -123,10 +124,11 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
         let origin= &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().show;
+        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
 
         
         
-        let res = get_papi_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
+        let res = get_papi_account_sub(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
         
         match res {
             Some(sub) => {
@@ -195,8 +197,9 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
+        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
         let alarm = &traders.get(name).unwrap().show;
-        let res = get_account_bybit(value, name, id, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_bybit(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
         
         match res {
             Some(sub) => {
@@ -311,15 +314,11 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
+        let borrow_currency = &traders.get(name).unwrap().borrow_currency;
         let alarm = &traders.get(name).unwrap().show;
-        let res = get_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
+        let res = get_account_sub(value, name, id, borrow_currency, origin.parse().unwrap(), &alarm).await;
         match res {
             Some(sub) => {
-                // equities += sub.total_equity.parse::<f64>().unwrap();
-                // equities_eth += sub.total_equity_eth.parse::<f64>().unwrap();
-                // origins += origin.parse::<f64>().unwrap();
-                // day_pnls += sub.day_pnl.parse::<f64>().unwrap();
-                // week_pnls += sub.week_pnl.parse::<f64>().unwrap();
                 subs.push(sub);
             }
             None => {
