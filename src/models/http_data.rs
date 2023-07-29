@@ -211,6 +211,22 @@ pub struct UpdateAlarms{
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateCurreny{
+    pub r#type: String,
+    pub token: String,
+    pub name: String,
+    pub currency: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateBorrow{
+    pub r#type: String,
+    pub token: String,
+    pub name: String,
+    pub borrow: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateOriBalance{
     pub r#type: String,
     pub token: String,

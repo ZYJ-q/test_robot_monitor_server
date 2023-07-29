@@ -8,7 +8,7 @@ use super::http::handlers;
 
 
 pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::Result<()> {
-    log::info!("starting HTTP server at http://{}:8082", &ip);
+    log::info!("starting HTTP server at http://{}:8081", &ip);
 
     let pool = database::create_pool(config_db);
 
@@ -42,6 +42,9 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/update_ori_balance").route(web::post().to(handlers::update_ori_balance_data)))
             .service(web::resource("/get_accounts").route(web::post().to(handlers::get_account)))
             .service(web::resource("/update_accounts_alarm").route(web::post().to(handlers::update_accounts_alarm)))
+            .service(web::resource("/update_threshold").route(web::post().to(handlers::update_positions)))
+            .service(web::resource("/update_currency").route(web::post().to(handlers::update_curreny)))
+            .service(web::resource("/update_borrow").route(web::post().to(handlers::update_borrow)))
             .service(web::resource("/delete_accounts").route(web::post().to(handlers::delete_accounts_data)))
             .service(web::resource("/add_accounts").route(web::post().to(handlers::add_accounts_data)))
             .service(web::resource("/select_id").route(web::post().to(handlers::select_tra_id)))
@@ -78,7 +81,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/insert_account").route(web::post().to(handlers::insert_account)))
             .service(web::resource("/insert_weixin").route(web::post().to(handlers::insert_weixins)))
     })
-    .bind((ip.as_str(), 8082))?
+    .bind((ip.as_str(), 8081))?
     .run();
 
     return server.await;
