@@ -1595,7 +1595,7 @@ pub fn update_borrow(pool: web::Data<Pool>, name:&str, borrow:&str) -> Result<()
 }
 
 // 删除账户
-pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str) -> Result<()> {
+pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
         r"delete from test_traders where tra_id = :tra_id",
@@ -1605,7 +1605,23 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str) -> Result<()> {
     );
     match res {
         Ok(()) => {
-            return Ok(());
+            let account = conn.exec_drop(
+                r"delete from test_acc_tra where tra_id = :tra_id and acc_id = :acc_id",
+                params! {
+                    "tra_id" => tra_id,
+                    "acc_id" => account_id
+                },
+            );
+            match account {
+                Ok(()) => {
+                    return Ok(());
+
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+            
         }
         Err(e) => {
             return Err(e);

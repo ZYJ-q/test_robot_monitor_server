@@ -2290,7 +2290,7 @@ pub async fn delete_accounts_data(mut payload: web::Payload, db_pool: web::Data<
         }
     }
 
-    let data = database::delect_accounts(db_pool.clone(), &obj.tra_id);
+    let data = database::delect_accounts(db_pool.clone(), &obj.tra_id, &obj.account_id);
     match data {
         Ok(all_products) => {
             return Ok(HttpResponse::Ok().json(Response {
