@@ -157,6 +157,15 @@ pub struct DelectOrders{
     pub account_id: String,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SelectNewOrders{
+    pub r#type: String,
+    pub token: String,
+    pub tra_id: String,
+    pub start_time: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddAccounts{
     pub r#type: String,

@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, SelectTraders, SelectWeixin, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, SelectTraders, SelectWeixin, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -2291,6 +2291,82 @@ pub async fn delete_accounts_data(mut payload: web::Payload, db_pool: web::Data<
     }
 
     let data = database::delect_accounts(db_pool.clone(), &obj.tra_id, &obj.account_id);
+    match data {
+        Ok(all_products) => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: all_products,
+            }));    
+        }
+        Err(e) => {
+            return Err(error::ErrorNotFound(e));
+        }
+        
+    }
+}
+
+// 查找今天的订单明细
+pub async fn select_new_traders(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectNewOrders>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::get_date_new_trades(db_pool.clone(), &obj.start_time, &obj.tra_id);
+    match data {
+        Ok(all_products) => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: all_products,
+            }));    
+        }
+        Err(e) => {
+            return Err(error::ErrorNotFound(e));
+        }
+        
+    }
+}
+
+// 查找今天bybit的订单明细
+pub async fn select_bybit_new_traders(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectNewOrders>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::get_date_bybit_new_trades(db_pool.clone(), &obj.start_time, &obj.tra_id);
     match data {
         Ok(all_products) => {
             return Ok(HttpResponse::Ok().json(Response {

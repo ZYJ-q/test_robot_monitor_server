@@ -1,4 +1,5 @@
 use chrono::Local;
+use itertools::Itertools;
 use log::error;
 use serde_json::{Map,Value};
 use std::collections::VecDeque;
@@ -57,8 +58,11 @@ pub async fn get_account_sub(
             
 
             if wallet_balance != 0.00 {
+                let borrows: Vec<&str> = borrow_currency.split('-').collect();
+
+                println!("处理之后的借贷币种{}", borrows[0]);
                 
-                if symbol == borrow_currency{
+                if symbol == borrows[0]{
                     continue;
                 }
 
@@ -461,7 +465,9 @@ pub async fn get_papi_account_sub(
                 continue;
             } else {
                 let symbol = obj.get("asset").unwrap().as_str().unwrap();
-                if symbol == borrow_currency {
+                let borrows: Vec<&str> = borrow_currency.split('-').collect();
+                println!("处理之后的借贷币种{}", borrows[0]);
+                if symbol == borrows[0] {
                     continue;
                 } else {
                     let unrealied_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();

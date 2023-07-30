@@ -222,7 +222,7 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
     let mut traders: HashMap<String, Trader> = HashMap::new();
     let mut conn = pool.get_conn().unwrap();
     let res = conn.query_map(
-        r"select * from test_traders",
+        r"select * from trader",
         |(tra_id,
             tra_venue,
             tra_currency,
@@ -261,7 +261,7 @@ pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
     // let mut traders: HashMap<String, Trader> = HashMap::new();
     let mut conn = pool.get_conn().unwrap();
     let res = conn.query_map(
-        r"select * from test_traders",
+        r"select * from trader",
         |(tra_id,
             tra_venue,
             tra_currency,
@@ -318,7 +318,7 @@ pub fn get_account_data(pool: web::Data<Pool>, account_id: &u64) -> Result<Vec<A
 pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str, ori_balance:&str, api_key: &str, secret_key:&str, r#type: &str, name: &str, alarm: &str, threshold:&str, thres_amount: &str, borrow_currency: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"insert into test_traders (tra_venue, tra_currency, api_key, secret_key, type, name, alarm, threshold, borrow, amount, wx_hook) values (:tra_venue, :tra_currency, :api_key, :secret_key, :type, :name, :alarm, :threshold, :borrow, :amount, :wx_hook)",
+        r"insert into trader (tra_venue, tra_currency, api_key, secret_key, type, name, alarm, threshold, borrow, amount, wx_hook) values (:tra_venue, :tra_currency, :api_key, :secret_key, :type, :name, :alarm, :threshold, :borrow, :amount, :wx_hook)",
         params! {
             "tra_venue" => tra_venue,
             "tra_currency" => tra_currency,
@@ -380,7 +380,7 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                 let mut conn = pool.get_conn().unwrap();
                 let prod = conn
                     .exec_first(
-                        r"select * from test_traders where tra_id = :tra_id",
+                        r"select * from trader where tra_id = :tra_id",
                         params! {
                             "tra_id" => tra_id
                         },
@@ -437,7 +437,7 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
     let mut conn = pool.get_conn().unwrap();
     let res = conn
         .exec_first(
-            r"select * from test_traders where name = :name",
+            r"select * from trader where name = :name",
             params! {
                 "name" => name
             },
@@ -506,7 +506,7 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
     let mut conn = pool.get_conn().unwrap();
     let res = conn
     .exec_first(
-                r"select * from test_traders where tra_id = :tra_id",
+                r"select * from trader where tra_id = :tra_id",
                 params! {
                         "tra_id" => tra_id
                         },
@@ -569,7 +569,7 @@ pub fn get_trader_incomes(pool: web::Data<Pool>) -> Result<HashMap<String, Trade
     let mut incomes: HashMap<String, Trader> = HashMap::new();
     let mut conn = pool.get_conn().unwrap();
     let res = conn.query_map(
-        "select * from test_traders",
+        "select * from trader",
         |(tra_id, tra_venue, tra_currency, api_key, secret_key, r#type, name, alarm, threshold, borrow, amount, wx_hook)| {
             Trader{ tra_id, tra_venue,  tra_currency, api_key, secret_key,  r#type, name, alarm, threshold, borrow, amount, wx_hook }
         }
@@ -686,7 +686,7 @@ pub fn get_trader_positions(pool: web::Data<Pool>, tra_id: &str) -> Result<HashM
     let mut conn = pool.get_conn().unwrap();
     let res = conn
     .exec_first(
-                r"select * from test_traders where tra_id = :tra_id",
+                r"select * from trader where tra_id = :tra_id",
                 params! {
                         "tra_id" => tra_id
                         },
@@ -1205,6 +1205,108 @@ pub fn get_trade_price(
     
 // }
 
+// 根据日期获取今天的交易数据
+pub fn get_date_new_trades(
+    pool: web::Data<Pool>,
+    start_time: &str,
+    tra_id: &str
+) -> Result<Vec<Trade>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    if tra_id == "Angus" {
+        let value = &format!("select * from trade_histories_3 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据angus{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "trader02" {
+        let value = &format!("select * from trade_histories_4 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "trader04" {
+        let value = &format!("select * from trade_histories_5 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "xh01_feng4_virtual" {
+        let value = &format!("select * from trade_histories_7 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "xh02_b20230524_virtual" {
+        let value = &format!("select * from trade_histories_8 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "xh03_feng3_virtual" {
+        let value = &format!("select * from trade_histories_9 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "xh04_20230524_virtual" {
+        let value = &format!("select * from trade_histories_10 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "pca01" {
+        let value = &format!("select * from trade_pca01 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else {
+        let value = &format!("select * from trade_histories_2 where tra_time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    }
+    
+}
+
 
 
 // 根据日期获取账户交易历史的数据
@@ -1355,6 +1457,50 @@ pub fn get_date_bybit_history_trades(
     
 }
 
+
+
+// 获取今天bybit交易数据
+pub fn get_date_bybit_new_trades(
+    pool: web::Data<Pool>,
+    start_time: &str,
+    tra_id: &str
+) -> Result<Vec<BybitTrade>> {
+    let mut conn = pool.get_conn().unwrap();
+    // let mut re: Vec<Trade> = Vec::new();
+    if tra_id == "mmteam1" {
+        let value = &format!("select * from mmteam1_traders where time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type)| {
+                BybitTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type }
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else if tra_id == "hmaker05" {
+        let value = &format!("select * from hmaker05_traders where time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type)| {
+                BybitTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type }
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    } else {
+        let value = &format!("select * from hmaker05_traders where time >= {}", start_time);
+        let trades = conn.query_map(
+            value,
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type)| {
+                BybitTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type }
+            }
+            ).unwrap();
+        // println!("获取历史交易数据account3{:?}", trades);
+        return Ok(trades);
+    }
+    
+}
+
 // 获取所有的产品列表
 pub fn get_all_products(pool: web::Data<Pool>) -> Result<Vec<Product>> {
     let mut conn = pool.get_conn().unwrap();
@@ -1478,7 +1624,7 @@ pub fn add_positions(pool: web::Data<Pool>, name:&str, api_key: &str, secret_key
 pub fn update_positions(pool: web::Data<Pool>, name:&str, threshold:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update test_traders set amount = :amount where tra_id = :tra_id",
+        r"update trader set amount = :amount where tra_id = :tra_id",
         params! {
             "tra_id" => name,
             "amount" => threshold
@@ -1518,7 +1664,7 @@ pub fn update_ori_balance(pool: web::Data<Pool>, tra_id:&str, ori_balance:&str) 
 pub fn update_alarms(pool: web::Data<Pool>, name:&str, alarm:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update test_traders set alarm = :alarm where tra_id = :tra_id",
+        r"update trader set alarm = :alarm where tra_id = :tra_id",
         params! {
             "tra_id" => name,
             "alarm" => alarm
@@ -1538,7 +1684,7 @@ pub fn update_alarms(pool: web::Data<Pool>, name:&str, alarm:&str) -> Result<()>
 pub fn update_threshold(pool: web::Data<Pool>, name:&str, threshold:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update test_traders set threshold = :threshold where tra_id = :tra_id",
+        r"update trader set threshold = :threshold where tra_id = :tra_id",
         params! {
             "tra_id" => name,
             "threshold" => threshold
@@ -1558,7 +1704,7 @@ pub fn update_threshold(pool: web::Data<Pool>, name:&str, threshold:&str) -> Res
 pub fn update_currency(pool: web::Data<Pool>, name:&str, currency:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update test_traders set tra_currency = :tra_currency where tra_id = :tra_id",
+        r"update trader set tra_currency = :tra_currency where tra_id = :tra_id",
         params! {
             "tra_id" => name,
             "tra_currency" => currency
@@ -1578,7 +1724,7 @@ pub fn update_currency(pool: web::Data<Pool>, name:&str, currency:&str) -> Resul
 pub fn update_borrow(pool: web::Data<Pool>, name:&str, borrow:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update test_traders set borrow = :borrow where tra_id = :tra_id",
+        r"update trader set borrow = :borrow where tra_id = :tra_id",
         params! {
             "tra_id" => name,
             "borrow" => borrow
@@ -1598,7 +1744,7 @@ pub fn update_borrow(pool: web::Data<Pool>, name:&str, borrow:&str) -> Result<()
 pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"delete from test_traders where tra_id = :tra_id",
+        r"delete from trader where tra_id = :tra_id",
         params! {
             "tra_id" => tra_id
         },
@@ -1634,7 +1780,7 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
 pub fn add_accounts(pool: web::Data<Pool>, name:&str, api_key: &str, secret_key:&str, alarm:&str, threshold:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"INSERT INTO test_traders (tra_venue, ori_balance, tra_currency, api_key, secret_key, other_keys, type, name, alarm, threshold)
+        r"INSERT INTO trader (tra_venue, ori_balance, tra_currency, api_key, secret_key, other_keys, type, name, alarm, threshold)
         VALUES (:tra_venue, :ori_balance, :tra_currency, :api_key, :secret_key, :other_keys, :type, :name, :alarm, :threshold)",
         params! {
             "tra_venue" => "Binance",
@@ -1671,7 +1817,7 @@ pub fn select_id(pool: web::Data<Pool>, name: &str, prod_id: &str) -> Result<()>
     // println!("传过来的参数{}", prod_id);
 
     let res:Result<Vec<u64>> = conn.exec(
-        "select tra_id from test_traders where name = :name", 
+        "select tra_id from trader where name = :name", 
         params! {
             "name" => name
         },
