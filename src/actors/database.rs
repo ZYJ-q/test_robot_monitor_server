@@ -72,6 +72,8 @@ pub fn check_account_admin(pool: web::Data<Pool>, name: &str) -> Result<Option<A
             },
         );
 
+    println!("检查账户是否是管理员{:?}", res);
+
     return res;
 }
 
