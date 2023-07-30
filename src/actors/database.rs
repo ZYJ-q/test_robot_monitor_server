@@ -376,25 +376,64 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
 // }
 // 查看邀请码
 pub fn get_invitation(pool: web::Data<Pool>, name: &str) -> Result<Vec<InvitationData>> {
+    let mut products: Vec<InvitationData> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from invitation where user = {}", name);
-    let res = conn.query_map(
-                value,
-                |(
-                    code,
-                    user,
-                    max,
-                    status,
-                    id
-                )| InvitationData {
-                    code,
-                    user,
-                    max,
-                    status,
-                    id
+    let prod = conn
+                    .exec_first(
+                        r"select * from invitation where user = :user",
+                        params! {
+                            "user" => name
+                        },
+                    )
+                    .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(|(
+                                code,
+                                user,
+                                max,
+                                status,
+                                id
+                            )| InvitationData {
+                                code,
+                                user,
+                                max,
+                                status,
+                                id
+                            })
+                        },
+                    );
+                match prod {
+                    Ok(produc) => match produc {
+                        Some(product) => {
+                            products.push(product);
+                            return  Ok(products);
+                        }
+                        None => {
+                            return Ok(products);
+                        }
+                    },
+                    Err(e) => {
+                        return Err(e);
+                    }
                 }
-                ).unwrap();
-    return Ok(res);
+    // let res = conn.query_map(
+    //             value,
+    //             |(
+    //                 code,
+    //                 user,
+    //                 max,
+    //                 status,
+    //                 id
+    //             )| InvitationData {
+    //                 code,
+    //                 user,
+    //                 max,
+    //                 status,
+    //                 id
+    //             }
+    //             ).unwrap();
+    // return Ok(res);
 
 }
 
