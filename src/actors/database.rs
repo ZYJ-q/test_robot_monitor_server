@@ -7,8 +7,8 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, ClearData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
-use super::http_data::SignInProRes;
+use super::db_data::{Account, Active, AccountData, Product, Trader, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::http_data::{SignInProRes, CreateInvitationProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
     let user = config_db.get("user").unwrap();
@@ -47,6 +47,80 @@ pub fn check_account(pool: web::Data<Pool>, name: &str, password: &str) -> Resul
         );
 
     return res;
+}
+
+
+pub fn check_account_admin(pool: web::Data<Pool>, name: &str) -> Result<Option<Account>> {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+        .exec_first(
+            r"select * from accounts where acc_name = :name and admin = :admin",
+            params! {
+                "name" => name,
+                "admin" => "true",
+            },
+        )
+        .map(
+            // Unpack Result
+            |row| {
+                row.map(|(acc_id, acc_name, acc_password, admin)| Account {
+                    acc_id,
+                    acc_name,
+                    acc_password,
+                    admin
+                })
+            },
+        );
+
+    return res;
+}
+
+// 查看是否有此邀请码
+pub fn check_invitation(pool: web::Data<Pool>, code: &str) -> Result<Option<InvitationData>> {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+        .exec_first(
+            r"select * from invitation where code = :code",
+            params! {
+                "code" => code,
+            },
+        )
+        .map(
+            // Unpack Result
+            |row| {
+                row.map(|(code, user, max, status, id)| InvitationData {
+                    code,
+                    user,
+                    max,
+                    status,
+                    id
+                })
+            },
+        );
+        
+
+    return res;
+}
+
+// 新增用户
+pub fn insert_account(pool: web::Data<Pool>, acc_name: &str, acc_password: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"insert into accounts (acc_name, acc_password, admin) values (:acc_name, :acc_password, :admin)",
+        params! {
+            "acc_name" => acc_name,
+            "acc_password" => acc_password,
+            "admin" => "false"
+        },
+    );
+    match res {
+        Ok(c) => {
+            return true;
+        },
+        Err(e) => {
+            return false;
+        }
+    };
 }
 
 
@@ -125,6 +199,45 @@ pub fn add_active(
     }
 }
 
+
+pub fn add_invitation(
+    pool: web::Data<Pool>,
+    code: &str,
+    name: &str,
+) -> Result<Vec<CreateInvitationProRes>> {
+    let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<CreateInvitationProRes> = Vec::new();
+
+    let res = conn.exec_drop(
+        r"INSERT INTO invitation (code, user, max, status) VALUES (:code, :user, :max, :status)",
+        params! {
+            "code" => code,
+            "user" => name,
+            "max" => "10",
+            "status" => "success"
+        },
+    );
+    match res {
+        Ok(()) => match get_invitation(pool, name) {
+            Ok(res) => {
+                    for item in res {
+                        re.push(CreateInvitationProRes {
+                            code: item.code,
+                            max: item.max,
+                            status: item.status
+                        });
+                    }
+                    return Ok(re);
+            },
+            Err(e) => {
+                return Err(e);
+            }
+        },
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
 
 
 pub fn is_active(pool: web::Data<Pool>, token: &str) -> bool {
@@ -255,6 +368,33 @@ pub fn get_traders(pool: web::Data<Pool>) -> Result<HashMap<String, Trader>> {
     return Ok(traders);
 }
 
+// 创建邀请码
+// pub fn create_invitation(pool: web::Data<Pool>) -> bool {
+//     let mut conn = pool.get_conn().unwrap();
+// }
+// 查看邀请码
+pub fn get_invitation(pool: web::Data<Pool>, name: &str) -> Result<Vec<InvitationData>> {
+    let mut conn = pool.get_conn().unwrap();
+    let value = &format!("select * from invitation where user = {}", name);
+    let res = conn.query_map(
+                value,
+                |(
+                    code,
+                    user,
+                    max,
+                    status,
+                    id
+                )| InvitationData {
+                    code,
+                    user,
+                    max,
+                    status,
+                    id
+                }
+                ).unwrap();
+    return Ok(res);
+
+}
 
 // 获取账户列表
 pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {

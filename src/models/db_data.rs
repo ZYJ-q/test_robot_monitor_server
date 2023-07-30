@@ -88,6 +88,15 @@ pub struct AccountData {
     pub tra_id: u64
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InvitationData {
+    pub code: String,
+    pub user: String,
+    pub max: u64,
+    pub status: String,
+    pub id: u64
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Trade {
     pub th_id: u64,

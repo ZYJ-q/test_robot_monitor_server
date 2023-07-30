@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, SelectTraders, SelectWeixin, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, SelectTraders, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -57,6 +57,70 @@ pub async fn sign_in(
                                 admin: response.admin,
                                 products: pros,
                                 token: rand_string,
+                            },
+                        }));
+                    }
+                    Err(e) => {
+                        return Err(error::ErrorNotFound(e));
+                    }
+                }
+            }
+            None => {
+                return Err(error::ErrorNotFound("account not exist"));
+            }
+        },
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
+// 生成邀请码
+pub async fn create_invitation(
+    mut payload: web::Payload,
+    db_pool: web::Data<Pool>,
+) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<CreateInvitation>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let query = database::check_account_admin(db_pool.clone(), &obj.name);
+    match query {
+        Ok(data) => match data {
+            Some(response) => {
+                let rand_string: String = thread_rng()
+                    .sample_iter(Alphanumeric)
+                    .take(5)
+                    .map(char::from)
+                    .collect();
+                match database::add_invitation(
+                    db_pool,
+                    &rand_string,
+                    &response.acc_name
+                ) {
+                    Ok(pros) => {
+                        return Ok(HttpResponse::Ok().json(Response {
+                            status: 200,
+                            data: InvitationRes {
+                                name: response.acc_name,
+                                invitation: pros,
                             },
                         }));
                     }
@@ -377,6 +441,70 @@ pub async fn insert_account(mut payload: web::Payload, db_pool: web::Data<Pool>)
             return Err(error::ErrorNotFound("插入失败"));
         },
     }
+}
+
+
+pub async fn insert_accounts(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<InsertAccounts>(&body)?;
+
+    let data = database::insert_account(db_pool.clone(), &obj.user_name, &obj.password); 
+    match data {
+        true => {
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));
+        },
+        false => {
+            return Err(error::ErrorNotFound("插入失败"));
+        },
+    }
+}
+
+
+pub async fn select_invitations(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectInvitation>(&body)?;
+
+    let data =  database::check_invitation(db_pool.clone(), &obj.code);
+        match data {
+            Ok(traders) => {
+                // println!("{:#?}", traders);
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+    
 }
 
 

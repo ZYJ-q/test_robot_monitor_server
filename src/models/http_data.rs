@@ -8,6 +8,21 @@ pub struct SignIn {
     pub password: String,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateInvitation {
+    pub token: String,
+    pub r#type: String,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CreateInvitationProRes {
+    pub(crate) code: String,
+    pub(crate) status: String,
+    pub(crate) max: u64,
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SignInProRes {
     pub(crate) name: String,
@@ -21,6 +36,12 @@ pub struct SignInRes {
     pub(crate) admin: String,
     pub(crate) products: Vec<SignInProRes>,
     pub(crate) token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InvitationRes {
+    pub(crate) name: String,
+    pub(crate) invitation: Vec<CreateInvitationProRes>
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -81,6 +102,13 @@ pub struct SelectWeixin {
     pub wx_hook: String,
     pub r#type: String,
     pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InsertAccounts {
+    pub user_name: String,
+    pub password: String,
 }
 
 
@@ -249,6 +277,11 @@ pub struct Posr {
     pub tra_id: String,
     pub r#type: String,
     pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SelectInvitation {
+    pub code: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
