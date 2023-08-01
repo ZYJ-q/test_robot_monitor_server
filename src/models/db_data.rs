@@ -116,6 +116,25 @@ pub struct Trade {
 
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct NewTrade {
+    pub th_id: u64,
+    pub tra_symbol: String,
+    pub tra_order_id: u64,
+    pub tra_commision: String,
+    pub tra_time: u64,
+    pub is_maker: String,
+    pub position_side: String,
+    pub price: String,
+    pub qty: String,
+    pub quote_qty: String,
+    pub realized_pnl: String,
+    pub side: String,
+    pub name: u8,
+    pub r#type: String
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BybitTrade {
     pub tra_order_id: String,
     pub th_id: String,

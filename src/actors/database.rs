@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -1366,7 +1366,7 @@ pub fn get_trade_price(
 //         let value = &format!("select * from trade_pca01 where tra_time >= {} and tra_time <= {}", start_time, end_time);
 //         let trades = conn.query_map(
 //             value,
-//             |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
+//             |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_Romysqlqty, realized_pnl, side)| {
 //                 Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
 //             }
 //             ).unwrap();
@@ -1391,110 +1391,22 @@ pub fn get_date_new_trades(
     pool: web::Data<Pool>,
     start_time: &str,
     tra_id: &str
-) -> Result<Vec<Trade>> {
+) -> Result<Vec<NewTrade>> {
     let mut conn = pool.get_conn().unwrap();
-    // let mut re: Vec<Trade> = Vec::new();
-    if tra_id == "Angus" {
-        let value = &format!("select * from trade_histories_3 where tra_time >= {}", start_time);
+    let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
+
+        
+
+        // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, 
+                position_side, price, qty, quote_qty, realized_pnl, side, name, r#type)| {
+                NewTrade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side, name, r#type}
             }
             ).unwrap();
-        // println!("获取历史交易数据angus{:?}", trades);
+        println!("获取历史交易数据angus{:?}", trades);
         return Ok(trades);
-    } else if tra_id == "trader02" {
-        let value = &format!("select * from trade_histories_4 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "trader04" {
-        let value = &format!("select * from trade_histories_5 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "xh01_feng4_virtual" {
-        let value = &format!("select * from trade_histories_7 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "xh02_b20230524_virtual" {
-        let value = &format!("select * from trade_histories_8 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "xh03_feng3_virtual" {
-        let value = &format!("select * from trade_histories_9 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "xh04_20230524_virtual" {
-        let value = &format!("select * from trade_histories_10 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "pca01" {
-        let value = &format!("select * from trade_pca01 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else if tra_id == "zd01" {
-        let value = &format!("select * from trader_zd01 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    } else {
-        let value = &format!("select * from trade_histories_2 where tra_time >= {}", start_time);
-        let trades = conn.query_map(
-            value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
-                Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
-            }
-            ).unwrap();
-        // println!("获取历史交易数据account3{:?}", trades);
-        return Ok(trades);
-    }
     
 }
 
