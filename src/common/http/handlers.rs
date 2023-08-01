@@ -1485,7 +1485,7 @@ pub async fn incomes(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Res
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<IncomesRe>(&body)?;
+    let obj = serde_json::from_slice::<Posr>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -1494,7 +1494,7 @@ pub async fn incomes(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Res
         }
     }
 
-    match database::get_trader_incomes(db_pool.clone()) {
+    match database::get_trader_positions(db_pool.clone(), &obj.tra_id) {
         Ok(traders) => {
             let acc_income_re = actions::get_history_income(traders).await;
             return Ok(HttpResponse::Ok().json(Response {

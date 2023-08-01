@@ -377,45 +377,62 @@ pub async fn get_income_data(
     let mut trade_incomes: VecDeque<Value> = VecDeque::new();
 
     // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
-    let dt = Local::now().timestamp_millis();
-    let last_day = dt - 1000*60*60*24;
-    let mut day_amount = 0.0;
-    let mut week_amount = 0.0;
     // println!("当前时间戳{}", dt);
 
         if let Some(data) = http_api.get_income("").await {
             let value: Value = serde_json::from_str(&data).unwrap();
+            let vec = value.as_object().unwrap();
+                println!("划转记录数据{:?},账户名字{}", vec,name);
+                let total = vec.get("total").unwrap().as_i64().unwrap();
             // println!("获取基金流水{:?}", value);
-            if value["total"] != 0 {
-                let income = value["rows"].as_array().unwrap();
-            // let last_day = dt - 1000*60*4;
-            for i in income {
-                let mut income_obj: Map<String, Value> = Map::new();
-                let obj = i.as_object().unwrap(); // positionAmt positionSide
-                
-                let status = obj.get("status").unwrap().as_str().unwrap();
-                if status == "CONFIRMED" {
-                    let time = obj.get("timestamp").unwrap().as_i64().unwrap();
-                    let amount:f64 = obj.get("amount").unwrap().as_str().unwrap().parse().unwrap();
+            if total == 0 {
+                println!("没有划转记录")
+            } else {
+                let rows = vec.get("rows").unwrap().as_array().unwrap();
+                for r in rows {
+                    let obj = r.as_object().unwrap();
+                    let mut income_object: Map<String, Value> = Map::new();
                     let asset = obj.get("asset").unwrap().as_str().unwrap();
-                    week_amount += amount;
-                    if time >= last_day {
-                        day_amount += amount;
+                    let amount = obj.get("amount").unwrap().as_str().unwrap();
+                    let tran_id = obj.get("tranId").unwrap().as_i64().unwrap();
+                    let r#type = obj.get("type").unwrap().as_i64().unwrap();
+                    let mut type_value = "";
+                    if r#type == 1 {
+                        type_value = "现货==>>USDT本位合约"
+                    } else if r#type == 2 {
+                        type_value = "USDT本位合约==>>现货"
+                    } else if r#type == 3 {
+                        type_value = "现货==>>币本位合约"
+                    } else if r#type == 4 {
+                        type_value = "币本位合约==>>现货"
                     }
-                    income_obj.insert(String::from("day_amount"), Value::from(day_amount.to_string()));
-                    income_obj.insert(String::from("week_amount"), Value::from(week_amount.to_string()));
-                    income_obj.insert(String::from("name"), Value::from(name));
-                    income_obj.insert(String::from("id"), Value::from(id.to_string()));
-                    income_obj.insert(String::from("time"), Value::from(time));
-                    income_obj.insert(String::from("amount"), Value::from(amount));
-                    income_obj.insert(String::from("asset"), Value::from(asset));
-                    trade_incomes.push_back(Value::from(income_obj));
-                } else {
-                    continue;
-                }  
-            }
+                    let millis = obj.get("timestamp").unwrap().as_i64().unwrap();
+                    let datetime: DateTime<Utc> = DateTime::from_utc(
+                        NaiveDateTime::from_timestamp_millis(millis).unwrap(),
+                        Utc,
+                    );
+                    // info!("datetime: {}", datetime);
+                    let time = format!("{}", datetime.format("%Y-%m-%d %H:%M:%S"));
+                    let status = obj.get("status").unwrap().as_str().unwrap();
+                    let mut status_value = "";
+                    if status == "PENDING" {
+                        status_value = "等待执行"
+                    } else if status == "CONFIRMED" {
+                        status_value = "成功划转"
+                    } else if status == "FAILED" {
+                        status_value = "执行失败"   
+                    }
+
+                    income_object.insert(String::from("time"), Value::from(time));
+                    income_object.insert(String::from("type"), Value::from(type_value));
+                    income_object.insert(String::from("asset"), Value::from(asset));
+                    income_object.insert(String::from("amount"), Value::from(amount));
+                    income_object.insert(String::from("tran_id"), Value::from(tran_id));
+                    income_object.insert(String::from("status"), Value::from(status_value));
+                    trade_incomes.push_back(Value::from(income_object));
+                }
                 
-        }
+            }
             // println!("处理之后的账户资金账户数据{:?}", trade_incomes);
             return Vec::from(trade_incomes.clone());
         } else {
