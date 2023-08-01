@@ -1416,18 +1416,17 @@ pub fn get_date_new_bybit_trades(
     pool: web::Data<Pool>,
     start_time: &str,
     tra_id: &str
-) -> Result<Vec<NewTrade>> {
+) -> Result<Vec<BybitNewTrade>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
+    let value = &format!("select * from bybit_traders where tra_time >= {} and name = {}", start_time, tra_id);
 
         
 
         // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, 
-                position_side, price, qty, quote_qty, realized_pnl, side)| {
-                NewTrade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name)| {
+                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name}
             }
             ).unwrap();
         // println!("获取历史交易数据angus{:?}", trades);
