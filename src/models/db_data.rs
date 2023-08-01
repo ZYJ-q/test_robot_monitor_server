@@ -131,6 +131,21 @@ pub struct NewTrade {
     pub side: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BybitNewTrade {
+    pub tra_order_id: String,
+    pub th_id: String,
+    pub time: u64,
+    pub symbol: String,
+    pub side: String,
+    pub price: String,
+    pub qty: String,
+    pub quote_qty: String,
+    pub commission: String,
+    pub r#type: String,
+    pub name: u64
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BybitTrade {

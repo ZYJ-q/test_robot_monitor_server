@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, BybitNewTrade, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -72,7 +72,7 @@ pub fn check_account_admin(pool: web::Data<Pool>, name: &str) -> Result<Option<A
             },
         );
 
-    println!("检查账户是否是管理员{:?}", res);
+    // println!("检查账户是否是管理员{:?}", res);
 
     return res;
 }
@@ -1406,6 +1406,31 @@ pub fn get_date_new_trades(
             }
             ).unwrap();
         println!("获取历史交易数据angus{:?}", trades);
+        return Ok(trades);
+    
+}
+
+
+// 根据日期获取今天的交易数据
+pub fn get_date_new_bybit_trades(
+    pool: web::Data<Pool>,
+    start_time: &str,
+    tra_id: &str
+) -> Result<Vec<NewTrade>> {
+    let mut conn = pool.get_conn().unwrap();
+    let value = &format!("select th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
+
+        
+
+        // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
+        let trades = conn.query_map(
+            value,
+            |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, 
+                position_side, price, qty, quote_qty, realized_pnl, side)| {
+                NewTrade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
+            }
+            ).unwrap();
+        // println!("获取历史交易数据angus{:?}", trades);
         return Ok(trades);
     
 }
