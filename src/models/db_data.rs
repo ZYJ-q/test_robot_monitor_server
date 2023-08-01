@@ -129,8 +129,6 @@ pub struct NewTrade {
     pub quote_qty: String,
     pub realized_pnl: String,
     pub side: String,
-    pub name: u8,
-    pub r#type: String
 }
 
 
