@@ -104,6 +104,49 @@ pub fn check_invitation(pool: web::Data<Pool>, code: &str) -> Result<Option<Invi
     return res;
 }
 
+
+pub fn check_all_invitation(pool: web::Data<Pool>, user: &str) -> Result<Vec<InvitationData>> {
+    let mut invitation: Vec<InvitationData> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+        .exec_first(
+            r"select * from invitation where user = :user",
+            params! {
+                "user" => user,
+            },
+        )
+        .map(
+            // Unpack Result
+            |row| {
+                row.map(|(code, user, max, status, id)| InvitationData {
+                    code,
+                    user,
+                    max,
+                    status,
+                    id
+                })
+            },
+        );
+
+
+        match res {
+            Ok(trader) => match trader {
+                Some(tra) => {
+                    invitation.push(tra);
+                }
+                None => {
+                    return Ok(invitation);
+                }
+            },
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        
+
+    return Ok(invitation);
+}
+
 // 新增用户
 pub fn insert_account(pool: web::Data<Pool>, acc_name: &str, acc_password: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();

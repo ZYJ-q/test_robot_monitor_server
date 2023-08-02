@@ -8,7 +8,7 @@ use super::http::handlers;
 
 
 pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::Result<()> {
-    log::info!("starting HTTP server at http://{}:8081", &ip);
+    log::info!("starting HTTP server at http://{}:8082", &ip);
 
     let pool = database::create_pool(config_db);
 
@@ -85,8 +85,9 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/create_invitation").route(web::post().to(handlers::create_invitation)))
             .service(web::resource("/check_invitation").route(web::post().to(handlers::select_invitations)))
             .service(web::resource("/add_accounts_invitation").route(web::post().to(handlers::insert_accounts)))
+            .service(web::resource("/select_all_invitation").route(web::post().to(handlers::select_all_invitations)))
     })
-    .bind((ip.as_str(), 8081))?
+    .bind((ip.as_str(), 8082))?
     .run();
 
     return server.await;

@@ -285,6 +285,13 @@ pub struct SelectInvitation {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SelectAllInvitation {
+    pub token: String,
+    pub r#type: String,
+    pub user: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct IncomesRe {
     pub r#type: String,
     pub token: String
@@ -380,7 +387,7 @@ pub struct ByBitSub {
     pub leverage: String,
     pub open_order_amt: String,
     pub position: String,
-    pub available_balance: String
+    pub available_balance: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
