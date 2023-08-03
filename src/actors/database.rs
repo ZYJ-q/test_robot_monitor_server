@@ -739,7 +739,8 @@ pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<Noti
         .map(
             // Unpack Result
             |row| {
-                row.map(|(tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)| NoticesData {
+                row.map(|(id, tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)| NoticesData {
+                    id,
                     tra_id,
                     wx_hook,
                     wx_name,

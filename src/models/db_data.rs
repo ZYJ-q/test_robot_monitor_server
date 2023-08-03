@@ -100,6 +100,7 @@ pub struct InvitationData {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NoticesData {
+    pub id: u64,
     pub tra_id: u64,
     pub wx_hook: String,
     pub wx_name: String,
