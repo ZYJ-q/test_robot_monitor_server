@@ -2532,7 +2532,7 @@ pub async fn select_new_bybit_traders(mut payload: web::Payload, db_pool: web::D
         }
     }
 
-    let data = database::get_date_bybit_new_trades(db_pool.clone(), &obj.start_time, &obj.tra_id);
+    let data = database::get_date_new_bybit_trades(db_pool.clone(), &obj.start_time, &obj.tra_id);
     match data {
         Ok(all_products) => {
             return Ok(HttpResponse::Ok().json(Response {
