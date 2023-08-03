@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, BybitNewTrade, ClearData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -725,6 +725,51 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
     }
 }
 
+// 获取账户的通知方式
+pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<NoticesData>> {
+    let mut notices: Vec<NoticesData> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+        .exec_first(
+            r"select * from notices where tra_id = :tra_id",
+            params! {
+                "tra_id" => tra_id,
+            },
+        )
+        .map(
+            // Unpack Result
+            |row| {
+                row.map(|(tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)| NoticesData {
+                    tra_id,
+                    wx_hook,
+                    wx_name,
+                    slack_hook,
+                    slack_name,
+                    mess_hook,
+                    mess_name,
+                })
+            },
+        );
+
+
+        match res {
+            Ok(trader) => match trader {
+                Some(tra) => {
+                    notices.push(tra);
+                }
+                None => {
+                    return Ok(notices);
+                }
+            },
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        
+
+    return Ok(notices);
+}
+
 pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<String, Trader>> {
     let mut traders: HashMap<String, Trader> = HashMap::new();
     let mut conn = pool.get_conn().unwrap();
@@ -784,6 +829,8 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
                     }
     return Ok(traders);
 }
+
+
 
 
 
