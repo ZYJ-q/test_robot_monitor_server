@@ -1436,7 +1436,7 @@ pub fn get_date_new_trades(
     tra_id: &str
 ) -> Result<Vec<NewTrade>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
+    let value = &format!("select th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side from bian_traders where tra_time >= {} and name = {} order by tra_time", start_time, tra_id);
 
         
 
@@ -1461,7 +1461,7 @@ pub fn get_date_new_bybit_trades(
     tra_id: &str
 ) -> Result<Vec<BybitNewTrade>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from bybit_traders where time >= {} and name = {}", start_time, tra_id);
+    let value = &format!("select * from bybit_traders where time >= {} and name = {} order by time", start_time, tra_id);
 
         
 
