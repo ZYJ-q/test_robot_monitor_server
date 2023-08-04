@@ -1623,12 +1623,12 @@ pub fn get_bybit_equity(
     name: &str
 ) -> Result<Vec<BybitEquity>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from  bybit_equitys where name = {}", name);
+    let value = &format!("select * from bian_15m_equity where name = {}", name);
     // let mut re: Vec<Trade> = Vec::new();
         let equitys = conn.query_map(
             value,
-            |(id, name, time, equity)| {
-                BybitEquity{id, name, time, equity}
+            |(id, name, time, equity, r#type)| {
+                BybitEquity{id, name, time, equity, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
@@ -1663,11 +1663,11 @@ pub fn get_total_bybit_equity(
 ) -> Result<Vec<BybitEquity>> {
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
-    let value = &format!("select * from total_bybit_equity where name = {}", name);
+    let value = &format!("select * from bian_15m_equity where name = {}", name);
         let equitys = conn.query_map(
             value,
-            |(id, name, time, equity)| {
-                BybitEquity{id, name, time, equity}
+            |(id, name, time, equity, r#type)| {
+                BybitEquity{id, name, time, equity, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);

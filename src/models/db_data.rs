@@ -195,6 +195,7 @@ pub struct BybitEquity {
     pub name: u64,
     pub time: String,
     pub equity: String,
+    pub r#type: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
