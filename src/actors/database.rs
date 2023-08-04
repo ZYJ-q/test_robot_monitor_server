@@ -962,7 +962,7 @@ pub fn insert_traders_slack_notices(pool: web::Data<Pool>, tra_id: &str, slack_h
                                 );
                                 match notice {
                                     Ok(c) => {
-                                        continue;
+                                        return true;;
                                     },
                                     Err(e) => {
                                         return false;
@@ -983,7 +983,7 @@ pub fn insert_traders_slack_notices(pool: web::Data<Pool>, tra_id: &str, slack_h
                                 );
                                 match notice {
                                     Ok(c) => {
-                                        continue;
+                                        return true;;
                                     },
                                     Err(e) => {
                                         return false;
