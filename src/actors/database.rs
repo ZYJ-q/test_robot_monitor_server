@@ -1271,7 +1271,7 @@ pub fn delete_wx_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) 
 pub fn delete_slack_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update notices set slack_hook =: hook, slack_name = :slack_name where tra_id = :tra_id and slack_hook = :slack_hook",
+        r"update notices set slack_hook = :hook, slack_name = :slack_name where tra_id = :tra_id and slack_hook = :slack_hook",
         params! {
             "tra_id" => tra_id,
             "slack_hook" => hook,
