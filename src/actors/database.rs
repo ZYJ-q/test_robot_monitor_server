@@ -673,7 +673,7 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                 let mut conn = pool.get_conn().unwrap();
                 let prod = conn
                     .exec_first(
-                        r"select * from * where tra_id = :tra_id",
+                        r"select * from trader where tra_id = :tra_id",
                         params! {
                             "tra_id" => tra_id
                         },
