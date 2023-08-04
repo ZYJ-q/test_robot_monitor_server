@@ -1246,7 +1246,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
 pub fn delete_wx_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update notices set wx_hook =: hook, wx_name = :wx_name where tra_id = :tra_id and wx_hook = :wx_hook",
+        r"update notices set wx_hook = :hook, wx_name = :wx_name where tra_id = :tra_id and wx_hook = :wx_hook",
         params! {
             "tra_id" => tra_id,
             "wx_hook" => hook,
