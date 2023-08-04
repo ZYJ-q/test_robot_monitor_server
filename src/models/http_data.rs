@@ -169,6 +169,14 @@ pub struct AddTradeSlackNotice {
     pub token: String
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteTradeSlackNotice {
+    pub tra_id: String,
+    pub hook: String,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PapiSub {
     pub id: String,

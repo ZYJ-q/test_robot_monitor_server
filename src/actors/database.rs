@@ -801,48 +801,18 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
 
 // 获取账户的通知方式
 pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<NoticesData>> {
-    let mut notices: Vec<NoticesData> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
+    let value = &format!("select * from notices where tra_id = {}", tra_id);
     let res = conn
-        .exec_first(
-            r"select * from notices where tra_id = :tra_id",
-            params! {
-                "tra_id" => tra_id,
+        .query_map(
+            value,
+            |(id, tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)|{
+                NoticesData { id, tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name }
             },
-        )
-        .map(
-            // Unpack Result
-            |row| {
-                row.map(|(id, tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)| NoticesData {
-                    id,
-                    tra_id,
-                    wx_hook,
-                    wx_name,
-                    slack_hook,
-                    slack_name,
-                    mess_hook,
-                    mess_name,
-                })
-            },
-        );
-
-
-        match res {
-            Ok(trader) => match trader {
-                Some(tra) => {
-                    notices.push(tra);
-                }
-                None => {
-                    return Ok(notices);
-                }
-            },
-            Err(e) => {
-                return Err(e);
-            }
-        }
+        ).unwrap();
         
 
-    return Ok(notices);
+    return Ok(res);
 }
 
 
@@ -850,8 +820,8 @@ pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<Noti
 
 pub fn insert_traders_wx_notices(pool: web::Data<Pool>, tra_id: &str, wx_hook: &str, wx_name: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let res: Result<Vec<String>> = conn.exec(
-        r"select wx_hook from notices where tra_id = :tra_id", 
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select id from notices where tra_id = :tra_id", 
         params! {
             "tra_id" => tra_id
         },
@@ -860,45 +830,69 @@ pub fn insert_traders_wx_notices(pool: web::Data<Pool>, tra_id: &str, wx_hook: &
         Ok(c) => {
             println!("找到了{:?}", c);
             for n in c{
-                if n.len() == 0{
-                    let notice = conn.exec_drop(
-                        r"update notices set wx_hook = :wx_hook, wx_name = :wx_name where tra_id = :tra_id", 
-                        params! {
-                            "wx_hook" => wx_hook,
-                            "wx_name" => wx_name,
-                            "tra_id" => tra_id
+                let result: Result<Vec<String>> = conn.exec(
+                    r"select wx_hook from notices where tra_id = :tra_id and id = :id", 
+        params! {
+            "tra_id" => tra_id,
+            "id" => n
+        },
+                );
+
+                match result {
+                    Ok(r) => {
+
+                        for s in r{
+                            if s.len() == 0{
+                                let notice = conn.exec_drop(
+                                    r"update notices set wx_hook = :wx_hook, wx_name = :wx_name where tra_id = :tra_id and id = :id", 
+                                    params! {
+                                        "wx_hook" => wx_hook,
+                                        "wx_name" => wx_name,
+                                        "tra_id" => tra_id,
+                                        "id" => n
+                                    }
+                                );
+                                match notice {
+                                    Ok(c) => {
+                                        continue;
+                                    },
+                                    Err(e) => {
+                                        return false;
+                                    }  
+                                }; 
+                            } else {
+                                let notice = conn.exec_drop(
+                                    r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
+                                    params! {
+                                        "wx_hook" => wx_hook,
+                                        "wx_name" => wx_name,
+                                        "tra_id" => tra_id,
+                                        "slack_hook" => "",
+                                        "slack_name" => "",
+                                        "mess_hook" => "",
+                                        "mess_name" => ""
+                                    }
+                                );
+                                match notice {
+                                    Ok(c) => {
+                                        continue;
+                                    },
+                                    Err(e) => {
+                                        return false;
+                                    }  
+                                }; 
+                            }
+
                         }
-                    );
-                    match notice {
-                        Ok(c) => {
-                            return true;
-                        },
-                        Err(e) => {
-                            return false;
-                        }  
-                    }; 
-                } else {
-                    let notice = conn.exec_drop(
-                        r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
-                        params! {
-                            "wx_hook" => wx_hook,
-                            "wx_name" => wx_name,
-                            "tra_id" => tra_id,
-                            "slack_hook" => "",
-                            "slack_name" => "",
-                            "mess_hook" => "",
-                            "mess_name" => ""
-                        }
-                    );
-                    match notice {
-                        Ok(c) => {
-                            return true;
-                        },
-                        Err(e) => {
-                            return false;
-                        }  
-                    }; 
+
+                    },
+                    Err(e) => {
+                        return false;
+                        
+                    }
+                    
                 }
+                
             }
             return true;
         },
@@ -934,8 +928,8 @@ pub fn insert_traders_wx_notices(pool: web::Data<Pool>, tra_id: &str, wx_hook: &
 
 pub fn insert_traders_slack_notices(pool: web::Data<Pool>, tra_id: &str, slack_hook: &str, slack_name: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let res: Result<Vec<String>> = conn.exec(
-        r"select slack_hook from notices where tra_id = :tra_id", 
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select id from notices where tra_id = :tra_id", 
         params! {
             "tra_id" => tra_id
         },
@@ -944,45 +938,69 @@ pub fn insert_traders_slack_notices(pool: web::Data<Pool>, tra_id: &str, slack_h
         Ok(c) => {
             println!("找到了{:?}", c);
             for n in c{
-                if n.len() == 0{
-                    let notice = conn.exec_drop(
-                        r"update notices set slack_hook = :slack_hook, slack_name = :slack_name where tra_id = :tra_id", 
-                        params! {
-                            "slack_hook" => slack_hook,
-                            "slack_name" => slack_name,
-                            "tra_id" => tra_id
+                let result: Result<Vec<String>> = conn.exec(
+                    r"select slack_hook from notices where tra_id = :tra_id and id = :id", 
+        params! {
+            "tra_id" => tra_id,
+            "id" => n
+        },
+                );
+
+                match result {
+                    Ok(r) => {
+
+                        for s in r{
+                            if s.len() == 0{
+                                let notice = conn.exec_drop(
+                                    r"update notices set slack_hook = :slack_hook, slack_name = :slack_name where tra_id = :tra_id and id = :id", 
+                                    params! {
+                                        "slack_hook" => slack_hook,
+                                        "slack_name" => slack_name,
+                                        "tra_id" => tra_id,
+                                        "id" => n
+                                    }
+                                );
+                                match notice {
+                                    Ok(c) => {
+                                        continue;
+                                    },
+                                    Err(e) => {
+                                        return false;
+                                    }  
+                                }; 
+                            } else {
+                                let notice = conn.exec_drop(
+                                    r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
+                                    params! {
+                                        "wx_hook" => "",
+                                        "wx_name" => "",
+                                        "tra_id" => tra_id,
+                                        "slack_hook" => slack_hook,
+                                        "slack_name" => slack_name,
+                                        "mess_hook" => "",
+                                        "mess_name" => ""
+                                    }
+                                );
+                                match notice {
+                                    Ok(c) => {
+                                        continue;
+                                    },
+                                    Err(e) => {
+                                        return false;
+                                    }  
+                                }; 
+                            }
+
                         }
-                    );
-                    match notice {
-                        Ok(c) => {
-                            return true;
-                        },
-                        Err(e) => {
-                            return false;
-                        }  
-                    }; 
-                } else {
-                    let notice = conn.exec_drop(
-                        r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
-                        params! {
-                            "wx_hook" => "",
-                            "wx_name" => "",
-                            "tra_id" => tra_id,
-                            "slack_hook" => slack_hook,
-                            "slack_name" => slack_name,
-                            "mess_hook" => "",
-                            "mess_name" => ""
-                        }
-                    );
-                    match notice {
-                        Ok(c) => {
-                            return true;
-                        },
-                        Err(e) => {
-                            return false;
-                        }  
-                    }; 
+
+                    },
+                    Err(e) => {
+                        return false;
+                        
+                    }
+                    
                 }
+                
             }
             return true;
         },
@@ -1224,6 +1242,53 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
 }
 
 
+// 删除此通知方式
+pub fn delete_wx_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"update notices set wx_hook =: hook, wx_name = :wx_name where tra_id = :tra_id and wx_hook = :wx_hook",
+        params! {
+            "tra_id" => tra_id,
+            "wx_hook" => hook,
+            "hook" => "",
+            "wx_name" => ""
+        },
+    );
+    match res {
+        Ok(()) => {
+            return true;
+
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
+
+
+
+// 删除此通知方式
+pub fn delete_slack_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"update notices set slack_hook =: hook, slack_name = :slack_name where tra_id = :tra_id and slack_hook = :slack_hook",
+        params! {
+            "tra_id" => tra_id,
+            "slack_hook" => hook,
+            "hook" => "",
+            "slack_name" => ""
+        },
+    );
+    match res {
+        Ok(()) => {
+            return true;
+
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
 
 
 
@@ -2415,6 +2480,28 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
                 }
             }
             
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
+
+
+// 移除账户
+pub fn remove_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"delete from test_acc_tra where tra_id = :tra_id and acc_id = :acc_id",
+        params! {
+            "tra_id" => tra_id,
+            "acc_id" => account_id
+        },
+    );
+    match res {
+        Ok(()) => {
+            return Ok(());
+
         }
         Err(e) => {
             return Err(e);
