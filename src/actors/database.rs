@@ -604,7 +604,7 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                 let mut conn = pool.get_conn().unwrap();
                 let prod = conn
                     .exec_first(
-                        r"select * from trader_message where tra_id = :tra_id",
+                        r"select * from trader_message where tra_id = :tra_id order by id limit 1",
                         params! {
                             "tra_id" => tra_id
                         },
