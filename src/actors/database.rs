@@ -589,7 +589,7 @@ pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str) -> bo
 
 
 // 获取所有的账户列表
-pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<TraderMessage>>> {
+pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<TraderMessage>>> {
     let mut products: Vec<TraderMessage> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
@@ -634,6 +634,79 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                                     tra_venue,
                                     r#type,
                                
+                            })
+                        },
+                    );
+                match prod {
+                    Ok(produc) => match produc {
+                        Some(product) => {
+                            products.push(product);
+                        }
+                        None => {
+                            continue;
+                        }
+                    },
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            return Ok(Some(products));
+        }
+        Err(e) => return Err(e),
+    }
+}
+
+
+pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<Trader>>> {
+    let mut products: Vec<Trader> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from test_acc_tra where acc_id = :acc_id",
+        params! {
+            "acc_id" => account_id
+        },
+    );
+    match res {
+        Ok(tra_ids) => {
+            for tra_id in tra_ids {
+                let mut conn = pool.get_conn().unwrap();
+                let prod = conn
+                    .exec_first(
+                        r"select * from * where tra_id = :tra_id",
+                        params! {
+                            "tra_id" => tra_id
+                        },
+                    )
+                    .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(|(
+                                tra_id,
+                                tra_venue,
+                                tra_currency,
+                                api_key,
+                                secret_key,
+                                r#type,
+                                name,
+                                alarm,
+                                threshold,
+                                borrow,
+                                amount,
+                                wx_hook,
+                            )| Trader {
+                                tra_id,
+                                tra_venue,
+                                tra_currency,
+                                api_key,
+                                secret_key,
+                                r#type,
+                                name,
+                                alarm,
+                                threshold,
+                                borrow,
+                                amount,
+                                wx_hook,
                             })
                         },
                     );

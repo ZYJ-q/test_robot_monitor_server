@@ -924,6 +924,44 @@ pub async fn get_account(mut payload: web::Payload, db_pool: web::Data<Pool>) ->
 }
 
 
+pub async fn get_account_message(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectTraders>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let date =  database::get_all_traders_message(db_pool.clone(), &obj.account_id);
+        match date {
+            Ok(traders) => {
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+}
+
+
 // 获取权益数据（显示资金曲线）
 pub async fn get_bybit_equity(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
