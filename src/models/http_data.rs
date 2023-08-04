@@ -160,6 +160,15 @@ pub struct AddTradeNotice {
     pub token: String
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddTradeSlackNotice {
+    pub tra_id: String,
+    pub slack_hook: String,
+    pub slack_name: String,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PapiSub {
     pub id: String,

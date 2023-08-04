@@ -90,6 +90,8 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/get_trader_message").route(web::post().to(handlers::get_account_message)))
             .service(web::resource("/add_wx_trader_notices").route(web::post().to(handlers::add_wx_trader_notices)))
             .service(web::resource("/check_wx_ways").route(web::post().to(handlers::check_weixin_ways)))
+            .service(web::resource("/check_slack_ways").route(web::post().to(handlers::check_slack_ways)))
+            .service(web::resource("/add_slack_trader_notices").route(web::post().to(handlers::add_slack_trader_notices)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

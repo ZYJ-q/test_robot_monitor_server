@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, InvitationRes, SelectTraders, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, SelectTraders, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -1841,6 +1841,84 @@ pub async fn check_weixin_ways(mut payload: web::Payload, db_pool: web::Data<Poo
     }
 
     let data =  database::check_traders_wx_notices(db_pool.clone(), &obj.tra_id, &obj.wx_hook, &obj.wx_name);
+        match data {
+            Ok(traders) => {
+                // println!("{:#?}", traders);
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+    
+}
+
+
+// 添加账户的通知方式
+pub async fn add_slack_trader_notices(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<AddTradeSlackNotice>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::insert_traders_slack_notices(db_pool.clone(), &obj.tra_id, &obj.slack_hook, &obj.slack_name);
+    match data {
+        true => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));    
+        }
+        false => {
+            return Err(error::ErrorNotFound("添加失败"));
+        }
+        
+    }
+}
+
+
+pub async fn check_slack_ways(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<AddTradeSlackNotice>(&body)?;
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data =  database::check_traders_slack_notices(db_pool.clone(), &obj.tra_id, &obj.slack_hook, &obj.slack_name);
         match data {
             Ok(traders) => {
                 // println!("{:#?}", traders);
