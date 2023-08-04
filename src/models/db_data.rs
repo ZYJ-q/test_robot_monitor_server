@@ -81,6 +81,21 @@ pub struct Trader {
     pub wx_hook: String,
 }
 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TraderMessage {
+    pub id: u64,
+    pub tra_id: u64,
+    pub name: String,
+    pub equity: String,
+    pub leverage: String,
+    pub position: String,
+    pub open_order_amt: String,
+    pub avaliable_balance: String,
+    pub tra_venue: String,
+    pub r#type: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AccountData {
     pub ap_id: u64,

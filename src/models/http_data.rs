@@ -150,6 +150,16 @@ pub struct Trade {
     pub token: String
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddTradeNotice {
+    pub tra_id: String,
+    pub wx_hook: String,
+    pub wx_name: String,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PapiSub {
     pub id: String,

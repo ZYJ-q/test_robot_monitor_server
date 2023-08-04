@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade,TraderMessage, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -589,8 +589,8 @@ pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str) -> bo
 
 
 // 获取所有的账户列表
-pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<Trader>>> {
-    let mut products: Vec<Trader> = Vec::new();
+pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<TraderMessage>>> {
+    let mut products: Vec<TraderMessage> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
         r"select tra_id from test_acc_tra where acc_id = :acc_id",
@@ -604,7 +604,7 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                 let mut conn = pool.get_conn().unwrap();
                 let prod = conn
                     .exec_first(
-                        r"select * from trader where tra_id = :tra_id",
+                        r"select * from trader_message where tra_id = :tra_id",
                         params! {
                             "tra_id" => tra_id
                         },
@@ -612,27 +612,28 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
                     .map(
                         // Unpack Result
                         |row| {
-                            row.map(|(tra_id,
-                                tra_venue,
-                                tra_currency,
-                                api_key,
-                                secret_key,
-                                r#type,
-                                name,
-                                alarm,
-                                threshold, borrow,amount, wx_hook)| Trader {
+                            row.map(|(id,
                                 tra_id,
-                tra_venue,
-                tra_currency,
-                api_key,
-                secret_key,
-                r#type,
-                name,
-                alarm,
-                threshold,
-                                    borrow,
-                                    amount,
-                                    wx_hook
+                                name,
+                                equity,
+                                leverage,
+                                position,
+                                open_order_amt,
+                                avaliable_balance,
+                                tra_venue,
+                                r#type,)| TraderMessage {
+                                
+                                    id,
+                                    tra_id,
+                                    name,
+                                    equity,
+                                    leverage,
+                                    position,
+                                    open_order_amt,
+                                    avaliable_balance,
+                                    tra_venue,
+                                    r#type,
+                               
                             })
                         },
                     );
@@ -734,6 +735,138 @@ pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<Noti
             r"select * from notices where tra_id = :tra_id",
             params! {
                 "tra_id" => tra_id,
+            },
+        )
+        .map(
+            // Unpack Result
+            |row| {
+                row.map(|(id, tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name)| NoticesData {
+                    id,
+                    tra_id,
+                    wx_hook,
+                    wx_name,
+                    slack_hook,
+                    slack_name,
+                    mess_hook,
+                    mess_name,
+                })
+            },
+        );
+
+
+        match res {
+            Ok(trader) => match trader {
+                Some(tra) => {
+                    notices.push(tra);
+                }
+                None => {
+                    return Ok(notices);
+                }
+            },
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        
+
+    return Ok(notices);
+}
+
+
+
+
+pub fn insert_traders_wx_notices(pool: web::Data<Pool>, tra_id: &str, wx_hook: &str, wx_name: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<String>> = conn.exec(
+        r"select wx_hook from notices tra_id = :tra_id", 
+        params! {
+            "tra_id" => tra_id
+        },
+    );
+    match res {
+        Ok(c) => {
+            println!("找到了{:?}", c);
+            for n in c{
+                if n.len() == 0{
+                    let notice = conn.exec_drop(
+                        r"update notices set wx_hook = :wx_hook, wx_name = :wx_name where tra_id = :tra_id", 
+                        params! {
+                            "wx_hook" => wx_hook,
+                            "wx_name" => wx_name,
+                            "tra_id" => tra_id
+                        }
+                    );
+                    match notice {
+                        Ok(c) => {
+                            return true;
+                        },
+                        Err(e) => {
+                            return false;
+                        }  
+                    }; 
+                } else {
+                    let notice = conn.exec_drop(
+                        r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
+                        params! {
+                            "wx_hook" => wx_hook,
+                            "wx_name" => wx_name,
+                            "tra_id" => tra_id,
+                            "slack_hook" => "",
+                            "slack_name" => "",
+                            "mess_hook" => "",
+                            "mess_name" => ""
+                        }
+                    );
+                    match notice {
+                        Ok(c) => {
+                            return true;
+                        },
+                        Err(e) => {
+                            return false;
+                        }  
+                    }; 
+                }
+            }
+            return true;
+        },
+        Err(e) => {
+            println!("没有找到{}", e);
+            let notice = conn.exec_drop(
+                r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)", 
+                params! {
+                    "wx_hook" => wx_hook,
+                    "wx_name" => wx_name,
+                    "tra_id" => tra_id,
+                    "slack_hook" => "",
+                    "slack_name" => "",
+                    "mess_hook" => "",
+                    "mess_name" => ""
+                }
+            );
+            match notice {
+                Ok(c) => {
+                    return true;
+                },
+                Err(e) => {
+                    return false;
+                }  
+            };
+        }
+    };
+
+    // return true;
+}
+
+
+pub fn check_traders_wx_notices(pool: web::Data<Pool>, tra_id: &str, wx_hook: &str, wx_name: &str) -> Result<Vec<NoticesData>> {
+    let mut notices: Vec<NoticesData> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+        .exec_first(
+            r"select * from notices where tra_id = :tra_id and wx_hook = :wx_hook",
+            params! {
+                "tra_id" => tra_id,
+                "wx_hook" => wx_hook,
             },
         )
         .map(
