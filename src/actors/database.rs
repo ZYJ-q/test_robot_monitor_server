@@ -1494,7 +1494,7 @@ pub fn get_total_bian_equity(
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
-        println!("bian权益数据{:?}", equitys);
+        // println!("bian权益数据{:?}", equitys);
         return Ok(equitys);
 }
 
@@ -1757,7 +1757,7 @@ pub fn get_date_new_trades(
                 NewTrade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
             }
             ).unwrap();
-        println!("获取历史交易数据angus{:?}", trades);
+        // println!("获取历史交易数据angus{:?}", trades);
         return Ok(trades);
     
 }
@@ -1808,7 +1808,7 @@ pub fn get_date_history_trades(
                 NewTrade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
             }
             ).unwrap();
-        println!("获取历史交易数据angus{:?}", trades);
+        // println!("获取历史交易数据angus{:?}", trades);
         return Ok(trades);
     // let mut re: Vec<Trade> = Vec::new();
     // if tra_id == "account1" {
