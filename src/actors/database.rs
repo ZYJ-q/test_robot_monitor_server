@@ -1038,6 +1038,61 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
 }
 
 
+pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<TraderMessage>> {
+    let mut traders: Vec<TraderMessage> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+    .exec_first(
+        r"select * from trader_message where tra_id = :tra_id order by id desc limit 1",
+        params! {
+            "tra_id" => tra_id
+        },
+    )
+    .map(
+        // Unpack Result
+        |row| {
+            row.map(|(id,
+                tra_id,
+                name,
+                equity,
+                leverage,
+                position,
+                open_order_amt,
+                avaliable_balance,
+                tra_venue,
+                r#type,)| TraderMessage {
+                
+                    id,
+                    tra_id,
+                    name,
+                    equity,
+                    leverage,
+                    position,
+                    open_order_amt,
+                    avaliable_balance,
+                    tra_venue,
+                    r#type,
+               
+            })
+        },
+    );
+                    match res {
+                        Ok(trader) => match trader {
+                            Some(tra) => {
+                                traders.push(tra);
+                            }
+                            None => {
+                                return Ok(traders);
+                            }
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    }
+    return Ok(traders);
+}
+
+
 
 
 

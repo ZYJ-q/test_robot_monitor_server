@@ -831,19 +831,20 @@ pub async fn single_account(mut payload: web::Payload, db_pool: web::Data<Pool>)
         }
     }
 
-    match database::get_one_traders(db_pool.clone(), &obj.tra_id) {
-        Ok(traders) => {
-            let acct_re = actions::get_single_account(traders).await;
-            // println!("{:#?}", traders);
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: acct_re,
-            }));
+    let data =  database::get_one_traders_message(db_pool.clone(), &obj.tra_id);
+        match data {
+            Ok(traders) => {
+                // println!("{:#?}", traders);
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
         }
-        Err(e) => {
-            return Err(error::ErrorInternalServerError(e));
-        }
-    }
 }
 
 
