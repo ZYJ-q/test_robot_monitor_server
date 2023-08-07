@@ -7,8 +7,8 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, NewTrade,TraderMessage, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
-use super::http_data::{SignInProRes, CreateInvitationProRes};
+use super::db_data::{Account, Active, AccountData, Product, Trader, GroupTra, NewTrade,TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
     let user = config_db.get("user").unwrap();
@@ -588,6 +588,8 @@ pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str) -> bo
 }
 
 
+
+
 // 获取所有的账户列表
 pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Result<Option<Vec<TraderMessage>>> {
     let mut products: Vec<TraderMessage> = Vec::new();
@@ -815,6 +817,177 @@ pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<Noti
     return Ok(res);
 }
 
+
+pub fn get_account_group(pool: web::Data<Pool>, account_id: u64) -> Result<Option<Vec<AccountGroup>>> {
+    let mut products: Vec<AccountGroup> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select group_id from acc_group where acc_id = :acc_id",
+        params! {
+            "acc_id" => account_id
+        },
+    );
+    match res {
+        Ok(prod_ids) => {
+            for prod_id in prod_ids {
+                let mut conn = pool.get_conn().unwrap();
+                let prod = conn
+                    .exec_first(
+                        r"select * from account_group where group_id = :group_id",
+                        params! {
+                            "group_id" => prod_id
+                        },
+                    )
+                    .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(|(group_id, name)| AccountGroup {
+                                group_id,
+                                name
+                            })
+                        },
+                    );
+                match prod {
+                    Ok(produc) => match produc {
+                        Some(product) => {
+                            products.push(product);
+                        }
+                        None => {
+                            continue;
+                        }
+                    },
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            return Ok(Some(products));
+        }
+        Err(e) => return Err(e),
+    }
+}
+
+
+pub fn get_account_group_tra(
+    pool: web::Data<Pool>,
+    account_id: u64
+) -> Result<Vec<GroupAccountProRes>> {
+    let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<GroupAccountProRes> = Vec::new();
+    match get_account_group(pool, account_id) {
+        Ok(res) => match res {
+            Some(data) => {
+                for item in data {
+                    let tra_data = conn.exec_first(
+                        r"select * from group_tra where group_id = :group_id", 
+                        params! {
+                            "group_id" => item.group_id
+                        },
+                    )
+                    .map(
+                        |row| {
+                            row.map(|(id, group_id, tra_id)| GroupTra {
+                                id,
+                                group_id,
+                                tra_id
+                            }) 
+                        },
+                    );
+
+                    match tra_data {
+                        Ok(tra_group) => match tra_group {
+                            Some(tra_id) => {
+                                let account_data = conn.exec_first(
+                                    r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
+                                    params! {
+                                        "tra_id" => tra_id.tra_id
+                                    }
+                                )
+                                .map(
+                                    |row| {
+                                        row.map(|(id,
+                                            tra_id,
+                                            name,
+                                            equity,
+                                            leverage,
+                                            position,
+                                            open_order_amt,
+                                            avaliable_balance,
+                                            tra_venue,
+                                            r#type,)| TraderMessage {
+                                            
+                                                id,
+                                                tra_id,
+                                                name,
+                                                equity,
+                                                leverage,
+                                                position,
+                                                open_order_amt,
+                                                avaliable_balance,
+                                                tra_venue,
+                                                r#type,
+                                           
+                                        })
+                                    },
+
+                                );
+                                match account_data {
+                                    Ok(tra_data) => match tra_data {
+                                        Some(trader_message) => {
+                                            re.push(GroupAccountProRes {
+                                                name: String::from(item.name),
+                                                group_id: item.group_id,
+                                                tra_id: trader_message.tra_id,
+                                                tra_name: trader_message.name,
+                                                equity: trader_message.equity,
+                                                leverage: trader_message.leverage,
+                                                position: trader_message.position,
+                                                open_order_amt: trader_message.open_order_amt,
+                                                avaliable_balance: trader_message.avaliable_balance,
+                                                tra_venue: trader_message.tra_venue,
+                                                r#type: trader_message.r#type
+                                            })
+
+                                        }
+                                        None => {
+                                            continue;
+                                        }
+
+                                    },
+                                    Err(e) => {
+                                        return Err(e);
+                                    }
+                                    
+                                }
+                            }
+                            None => {
+                                continue;
+                            }
+
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                        
+                    }
+                }
+                return Ok(re);
+            }
+            None => {
+                return Ok(re);
+            }
+        },
+        Err(e) => {
+            return Err(e);
+        }
+}
+
+}
+
+
+
+
+
 // 添加账号组名称
 pub fn add_account_group(pool: web::Data<Pool>, name: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
@@ -834,6 +1007,9 @@ pub fn add_account_group(pool: web::Data<Pool>, name: &str) -> bool {
         }
     }
 }
+
+
+
 
 
 // 添加账户组
@@ -1083,7 +1259,7 @@ pub fn insert_traders_slack_notices(pool: web::Data<Pool>, tra_id: &str, slack_h
                                 );
                                 match notice {
                                     Ok(c) => {
-                                        return true;;
+                                        return true;
                                     },
                                     Err(e) => {
                                         return false;

@@ -26,7 +26,7 @@ pub struct CreateInvitationProRes {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SignInProRes {
     pub(crate) name: String,
-    pub(crate) id: String,
+    pub(crate) id: String
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -42,6 +42,23 @@ pub struct SignInRes {
 pub struct InvitationRes {
     pub(crate) name: String,
     pub(crate) invitation: Vec<CreateInvitationProRes>
+}
+
+
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct GroupAccountProRes {
+    pub(crate) name: String,
+    pub(crate) group_id: u64,
+    pub(crate) tra_id: u64,
+    pub(crate) tra_name: String,
+    pub(crate) equity: String,
+    pub(crate) leverage: String,
+    pub(crate) position: String,
+    pub(crate) open_order_amt: String,
+    pub(crate) avaliable_balance: String,
+    pub(crate) tra_venue: String,
+    pub(crate) r#type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -336,6 +353,14 @@ pub struct UpdateOriBalance{
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Posr {
     pub tra_id: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Group {
+    pub account_id: u64,
     pub r#type: String,
     pub token: String
 }

@@ -23,6 +23,21 @@ pub struct Product {
     pub prog_id: u64,
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AccountGroup {
+    pub group_id: u64,
+    pub name: String
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GroupTra {
+    pub id: u64,
+    pub group_id: u64,
+    pub tra_id: u64
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OpenOrders {
     pub id: u64,
