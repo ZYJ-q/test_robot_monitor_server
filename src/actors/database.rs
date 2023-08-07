@@ -967,6 +967,81 @@ pub fn get_account_group_tra(
 
 
 
+pub fn get_detail_account_group_tra(
+    pool: web::Data<Pool>,
+    group_id: u64
+) -> Result<Option<Vec<TraderMessage>>> {
+    let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<TraderMessage> = Vec::new();
+    let value = &format!("select * from group_tra where group_id = {}", group_id);
+    let tra_data = conn.query_map(
+        value, 
+        |(id, group_id, tra_id)| { GroupTra{id, group_id, tra_id}} 
+    ).unwrap();
+
+    for tra_id in tra_data{
+        let account_data = conn.exec_first(
+        r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
+            params! {
+                "tra_id" => tra_id.tra_id
+            }
+        )
+        .map(
+            |row| {
+                row.map(|(id,
+                          tra_id,
+                          name,
+                          equity,
+                          leverage,
+                          position,
+                          open_order_amt,
+                          avaliable_balance,
+                          tra_venue,
+                          r#type,)| TraderMessage {
+                                    
+                          id,
+                          tra_id,
+                          name,
+                          equity,
+                          leverage,
+                          position,
+                          open_order_amt,
+                          avaliable_balance,
+                          tra_venue,
+                          r#type,
+                                   
+                        })
+                    },
+
+                );
+                        match account_data {
+                            Ok(tra_data) => match tra_data {
+                                Some(trader_message) => {
+                                    re.push(trader_message)
+
+                                }
+                                None => {
+                                    continue;
+                                }
+
+                            },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                            
+                }
+            }
+
+   return Ok(Some(re));
+}
+                
+
+
+
+
+
+
+
 
 // 添加账号组名称
 pub fn add_account_group(pool: web::Data<Pool>, name: &str) -> bool {
@@ -2347,7 +2422,7 @@ pub fn get_date_history_trades(
     // } else if tra_id == "xh03_feng3_virtual" {
     //     let value = &format!("select * from trade_histories_9 where tra_time >= {} and tra_time <= {}", start_time, end_time);
     //     let trades = conn.query_map(
-    //         value,
+    //         value, 
     //         |(th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side)| {
     //             Trade{th_id, tra_symbol, tra_order_id, tra_commision, tra_time, is_maker, position_side, price, qty, quote_qty, realized_pnl, side}
     //         }

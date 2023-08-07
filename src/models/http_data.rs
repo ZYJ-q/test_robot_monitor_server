@@ -366,6 +366,13 @@ pub struct Group {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct DetailGroup {
+    pub group_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SelectInvitation {
     pub code: String,
 }
