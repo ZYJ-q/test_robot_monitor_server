@@ -815,6 +815,127 @@ pub fn trader_notice_way(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<Noti
     return Ok(res);
 }
 
+// 添加账号组名称
+pub fn add_account_group(pool: web::Data<Pool>, name: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"INSERT INTO account_group (name)
+        VALUES (:name)",
+        params! {
+            "name" => name,
+        },
+    );
+    match res {
+        Ok(()) => {
+            return true;
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
+
+
+// 添加账户组
+pub fn insert_group_tra(pool: web::Data<Pool>, name: &str, tra: Vec<u64>) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select group_id from account_group where name = :name",
+        params! {
+            "name" => name
+        },
+    );
+    match res {
+        Ok(group_ids) => {
+            for group_id in group_ids {
+                let mut conn = pool.get_conn().unwrap();
+                for tra_id  in &tra {
+                    let tra = conn.exec_drop(
+                        r"insert into group_tra (group_id, tra_id) values (:group_id, :tra_id)",
+                        params! {
+                            "group_id" => group_id,
+                            "tra_id" => tra_id
+                        },
+                    );
+
+                    match tra {
+                        Ok(()) => {
+                            continue;
+                        }
+                        Err(e) => {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        Err(_e) => return false,
+    }
+}
+
+
+
+// 删除此账号权限
+pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u64> ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    for tra in &tra_id {
+        let res = conn.exec_drop(
+            r"delete from test_acc_tra where acc_id=:acc_id and tra_id=:tra_id",
+            params! {
+                "tra_id" => tra,
+                "acc_id" => account_id
+            },
+        );
+
+        match res {
+            Ok(()) => {
+                continue;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+// 添加账号组权限
+pub fn insert_acc_group(pool: web::Data<Pool>, name: &str, account_id: &u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select group_id from account_group where name = :name",
+        params! {
+            "name" => name
+        },
+    );
+    match res {
+        Ok(group_ids) => {
+            for group_id in group_ids {
+                let mut conn = pool.get_conn().unwrap();
+                    let tra = conn.exec_drop(
+                        r"insert into acc_group (acc_id, group_id) values (:acc_id, :group_id)",
+                        params! {
+                            "acc_id" => account_id,
+                            "group_id" => group_id
+                        },
+                    );
+
+                    match tra {
+                        Ok(()) => {
+                            continue;
+                        }
+                        Err(_e) => {
+                            return false;
+                        }
+                    }
+            }
+            return true;
+        }
+        Err(_e) => return false,
+    }
+}
 
 
 

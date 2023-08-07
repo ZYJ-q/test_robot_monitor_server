@@ -177,6 +177,40 @@ pub struct DeleteTradeSlackNotice {
     pub token: String
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddAccountGroup {
+    pub name: String,
+    pub r#type: String,
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddAccGroup {
+    pub account_id: u64,
+    pub name: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddGroupTra {
+    pub tra_id: Vec<u64>,
+    pub name: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteAccountTra {
+    pub tra_id: Vec<u64>,
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PapiSub {
     pub id: String,

@@ -8,7 +8,7 @@ use super::http::handlers;
 
 
 pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::Result<()> {
-    log::info!("starting HTTP server at http://{}:8082", &ip);
+    log::info!("starting HTTP server at http://{}:8081", &ip);
 
     let pool = database::create_pool(config_db);
 
@@ -94,8 +94,12 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/add_slack_trader_notices").route(web::post().to(handlers::add_slack_trader_notices)))
             .service(web::resource("/delete_slack_trader_notices").route(web::post().to(handlers::delete_slack_trader_notices)))
             .service(web::resource("/delete_wx_trader_notices").route(web::post().to(handlers::delete_wx_trader_notices)))
+            .service(web::resource("/add_group_name").route(web::post().to(handlers::add_account_group)))
+            .service(web::resource("/add_group_tra").route(web::post().to(handlers::add_group_tra)))
+            .service(web::resource("/delete_acc_tra").route(web::post().to(handlers::delete_acc_tra)))
+            .service(web::resource("/add_acc_group").route(web::post().to(handlers::add_acc_group)))
     })
-    .bind((ip.as_str(), 8082))?
+    .bind((ip.as_str(), 8081))?
     .run();
 
     return server.await;
