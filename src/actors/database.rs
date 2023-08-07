@@ -878,97 +878,77 @@ pub fn get_account_group_tra(
         Ok(res) => match res {
             Some(data) => {
                 for item in data {
-                    let tra_data = conn.exec_first(
-                        r"select * from group_tra where group_id = :group_id", 
-                        params! {
-                            "group_id" => item.group_id
-                        },
-                    )
-                    .map(
-                        |row| {
-                            row.map(|(id, group_id, tra_id)| GroupTra {
-                                id,
-                                group_id,
-                                tra_id
-                            }) 
-                        },
-                    );
+                    let names = &item.name;
+                    let value = &format!("select * from group_tra where group_id = {}", item.group_id);
+                    let tra_data = conn.query_map(
+                        value, 
+                        |(id, group_id, tra_id)| { GroupTra{id, group_id, tra_id}} 
+                    ).unwrap();
 
-                    match tra_data {
-                        Ok(tra_group) => match tra_group {
-                            Some(tra_id) => {
-                                let account_data = conn.exec_first(
-                                    r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
-                                    params! {
-                                        "tra_id" => tra_id.tra_id
-                                    }
-                                )
-                                .map(
-                                    |row| {
-                                        row.map(|(id,
-                                            tra_id,
-                                            name,
-                                            equity,
-                                            leverage,
-                                            position,
-                                            open_order_amt,
-                                            avaliable_balance,
-                                            tra_venue,
-                                            r#type,)| TraderMessage {
-                                            
-                                                id,
-                                                tra_id,
-                                                name,
-                                                equity,
-                                                leverage,
-                                                position,
-                                                open_order_amt,
-                                                avaliable_balance,
-                                                tra_venue,
-                                                r#type,
-                                           
-                                        })
-                                    },
-
-                                );
-                                match account_data {
-                                    Ok(tra_data) => match tra_data {
-                                        Some(trader_message) => {
-                                            re.push(GroupAccountProRes {
-                                                name: String::from(item.name),
-                                                group_id: item.group_id,
-                                                tra_id: trader_message.tra_id,
-                                                tra_name: trader_message.name,
-                                                equity: trader_message.equity,
-                                                leverage: trader_message.leverage,
-                                                position: trader_message.position,
-                                                open_order_amt: trader_message.open_order_amt,
-                                                avaliable_balance: trader_message.avaliable_balance,
-                                                tra_venue: trader_message.tra_venue,
-                                                r#type: trader_message.r#type
-                                            })
-
-                                        }
-                                        None => {
-                                            continue;
-                                        }
-
-                                    },
-                                    Err(e) => {
-                                        return Err(e);
-                                    }
+                    for tra_id in tra_data{
+                        let account_data = conn.exec_first(
+                            r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
+                            params! {
+                                "tra_id" => tra_id.tra_id
+                            }
+                        )
+                        .map(
+                            |row| {
+                                row.map(|(id,
+                                    tra_id,
+                                    name,
+                                    equity,
+                                    leverage,
+                                    position,
+                                    open_order_amt,
+                                    avaliable_balance,
+                                    tra_venue,
+                                    r#type,)| TraderMessage {
                                     
-                                }
-                            }
-                            None => {
-                                continue;
-                            }
+                                        id,
+                                        tra_id,
+                                        name,
+                                        equity,
+                                        leverage,
+                                        position,
+                                        open_order_amt,
+                                        avaliable_balance,
+                                        tra_venue,
+                                        r#type,
+                                   
+                                })
+                            },
 
-                        },
-                        Err(e) => {
-                            return Err(e);
+                        );
+                        match account_data {
+                            Ok(tra_data) => match tra_data {
+                                Some(trader_message) => {
+                                    let new_name = names.clone();
+                                    re.push(GroupAccountProRes {
+                                        name: new_name,
+                                        group_id: item.group_id,
+                                        tra_id: trader_message.tra_id,
+                                        tra_name: trader_message.name,
+                                        equity: trader_message.equity,
+                                        leverage: trader_message.leverage,
+                                        position: trader_message.position,
+                                        open_order_amt: trader_message.open_order_amt,
+                                        avaliable_balance: trader_message.avaliable_balance,
+                                        tra_venue: trader_message.tra_venue,
+                                        r#type: trader_message.r#type
+                                    })
+
+                                }
+                                None => {
+                                    continue;
+                                }
+
+                            },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                            
                         }
-                        
                     }
                 }
                 return Ok(re);
