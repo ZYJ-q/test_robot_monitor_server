@@ -1049,47 +1049,37 @@ pub fn get_detail_account_group_equity(
     ).unwrap();
 
     for tra_id in tra_data{
-        let account_data = conn.exec_first(
-        r"select * from bian_15m_equity where name=:name", 
-            params! {
-                "name" => tra_id.tra_id
-            }
-        )
-        .map(
-            |row| {
-                row.map(|(id,
-                          name,
-                          equity,
-                          time,
-                          r#type)| GroupEquity {
-                                    
-                          id,
+        let values = &format!("select * from bian_15m_equity where name={}", tra_id.tra_id);
+        let account_data = conn.query_map(
+        values, 
+            |(id,
+                name,
+                equity,
+                time,
+                r#type)| { GroupEquity {
+                    id,
                           name,
                           equity,
                           time,
                           r#type
-                                   
-                        })
-                    },
+                }}
+        );
 
-                );
-                        match account_data {
-                            Ok(tra_data) => match tra_data {
-                                Some(trader_message) => {
-                                    re.push(trader_message)
-
-                                }
-                                None => {
-                                    continue;
-                                }
-
-                            },
-                            Err(e) => {
-                                return Err(e);
-                            }
-                            
+        
+        match account_data {
+            Ok(equitys) => {
+                for i in equitys{
+                    re.push(i)
                 }
+
             }
+            Err(_) => {
+                
+            }
+            
+        }
+                        
+    }
 
    return Ok(Some(re));
 }
