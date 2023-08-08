@@ -5,6 +5,8 @@ use serde_json::{Map,Value};
 use std::collections::VecDeque;
 use std::fs;
 use chrono::{DateTime, NaiveDateTime, Utc};
+use crate::models::db_data::BybitEquity;
+
 use super::http_data::{Sub, PapiSub };
 use super::base::venue_api::HttpVenueApi;
 
@@ -772,43 +774,44 @@ pub async fn get_papi_income_data(
             if incomes.len() == 0 {
 
             }
-
-
-            
-        //     if value["total"] != 0 {
-        //         let income = value["rows"].as_array().unwrap();
-        //     // let last_day = dt - 1000*60*4;
-        //     for i in income {
-        //         let mut income_obj: Map<String, Value> = Map::new();
-        //         let obj = i.as_object().unwrap(); // positionAmt positionSide
-                
-        //         let status = obj.get("status").unwrap().as_str().unwrap();
-        //         if status == "CONFIRMED" {
-        //             let time = obj.get("timestamp").unwrap().as_i64().unwrap();
-        //             let amount:f64 = obj.get("amount").unwrap().as_str().unwrap().parse().unwrap();
-        //             let asset = obj.get("asset").unwrap().as_str().unwrap();
-        //             week_amount += amount;
-        //             if time >= last_day {
-        //                 day_amount += amount;
-        //             }
-        //             income_obj.insert(String::from("day_amount"), Value::from(day_amount.to_string()));
-        //             income_obj.insert(String::from("week_amount"), Value::from(week_amount.to_string()));
-        //             income_obj.insert(String::from("name"), Value::from(name));
-        //             income_obj.insert(String::from("id"), Value::from(id.to_string()));
-        //             income_obj.insert(String::from("time"), Value::from(time));
-        //             income_obj.insert(String::from("amount"), Value::from(amount));
-        //             income_obj.insert(String::from("asset"), Value::from(asset));
-        //             trade_incomes.push_back(Value::from(income_obj));
-        //         } else {
-        //             continue;
-        //         }  
-        //     }
-                
-        // }
-            // println!("处理之后的账户资金账户数据{:?}", trade_incomes);
             return Vec::from(trade_incomes.clone());
         } else {
             error!("Can't get {} income.", name);
             return Vec::from(trade_incomes.clone());
         }
 }
+
+
+
+// // 处理equity数据
+// pub fn get_group_equitys(
+//     equity: Option<Vec<BybitEquity>>
+// ) -> Vec<Value>{
+
+//     let mut trade_incomes: VecDeque<Value> = VecDeque::new();
+    
+//     println!("{:?}", equity);
+
+//     match equity {
+//         Some(equitys) => {
+
+//             for i in equitys{
+//                 let time = i.time;
+//                 let new_time = &time[1..time.len()-1];
+
+//                 if 
+//             }
+
+
+//             return Vec::from(trade_incomes.clone());
+
+//         },
+//         None => {
+//             return Vec::from(trade_incomes.clone());
+
+//         },
+        
+//     }
+
+    
+// }

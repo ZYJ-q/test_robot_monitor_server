@@ -4,7 +4,8 @@ use serde_json::Value;
 use mysql::*;
 
 use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts, get_papi_account_positions, get_papi_open_orders, get_klines_price, get_papi_history_accounts, get_papi_income_data};
-use crate::actors::adapters::bybit::parase::{get_account_bybit, get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_usdc_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
+use crate::actors::adapters::bybit::parase::{get_account_bybit,  get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_usdc_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
+use crate::models::db_data::BybitEquity;
 
 use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi, BinancePapiApi, get_papi_account_sub};
 
@@ -914,6 +915,22 @@ pub async fn get_history_income(traders: HashMap<String, db_data::Trader>) -> Ve
     ;
     return data;
 }
+
+
+
+// // 获取账户转账历史记录
+// pub fn get_group_equity(equitys: Option<Vec<BybitEquity>>) -> Vec<Value> {
+    
+
+//     // 预备数据
+//     let mut data: Vec<Value> = [].to_vec() ;
+//     let res = get_group_equitys(equitys);
+//     data = res;
+
+
+    
+//     return data;
+// }
 
 
 // 获取bybit划转明细数据

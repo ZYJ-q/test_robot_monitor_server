@@ -1034,6 +1034,65 @@ pub fn get_detail_account_group_tra(
 
    return Ok(Some(re));
 }
+
+
+pub fn get_detail_account_group_equity(
+    pool: web::Data<Pool>,
+    group_id: u64
+) -> Result<Option<Vec<BybitEquity>>> {
+    let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<BybitEquity> = Vec::new();
+    let value = &format!("select * from group_tra where group_id = {}", group_id);
+    let tra_data = conn.query_map(
+        value, 
+        |(id, group_id, tra_id)| { GroupTra{id, group_id, tra_id}} 
+    ).unwrap();
+
+    for tra_id in tra_data{
+        let account_data = conn.exec_first(
+        r"select * from bian_15m_equity where name = :name", 
+            params! {
+                "name" => tra_id.tra_id
+            }
+        )
+        .map(
+            |row| {
+                row.map(|(id,
+                          name,
+                          equity,
+                          time,
+                          r#type)| BybitEquity {
+                                    
+                          id,
+                          name,
+                          equity,
+                          time,
+                          r#type
+                                   
+                        })
+                    },
+
+                );
+                        match account_data {
+                            Ok(tra_data) => match tra_data {
+                                Some(trader_message) => {
+                                    re.push(trader_message)
+
+                                }
+                                None => {
+                                    continue;
+                                }
+
+                            },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                            
+                }
+            }
+
+   return Ok(Some(re));
+}
                 
 
 
@@ -1979,8 +2038,8 @@ pub fn get_bybit_equity(
     // let mut re: Vec<Trade> = Vec::new();
         let equitys = conn.query_map(
             value,
-            |(id, name, time, equity, r#type)| {
-                BybitEquity{id, name, time, equity, r#type}
+            |(id, name, equity, time, r#type)| {
+                BybitEquity{id, name, equity, time, r#type}
             }
             ).unwrap();
         // println!("获取历史交易数据account1{:?}", trades);
