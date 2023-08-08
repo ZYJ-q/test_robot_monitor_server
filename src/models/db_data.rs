@@ -208,8 +208,8 @@ pub struct BybitTrade {
 pub struct BybitEquity {
     pub id: u64,
     pub name: u64,
-    pub equity: u64,
     pub time: String,
+    pub equity: String,
     pub r#type: String,
 }
 

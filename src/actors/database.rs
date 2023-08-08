@@ -1059,14 +1059,14 @@ pub fn get_detail_account_group_equity(
             |row| {
                 row.map(|(id,
                           name,
-                          equity,
                           time,
+                          equity,
                           r#type)| BybitEquity {
                                     
                           id,
                           name,
-                          equity,
                           time,
+                          equity,
                           r#type
                                    
                         })
