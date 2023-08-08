@@ -213,6 +213,16 @@ pub struct BybitEquity {
     pub r#type: String,
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GroupEquity {
+    pub id: u64,
+    pub name: u64,
+    pub equity: u64,
+    pub time: String,
+    pub r#type: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BianEquity {
     pub id: u64,

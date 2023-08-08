@@ -7,7 +7,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, GroupTra, NewTrade,TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, GroupTra, NewTrade, GroupEquity, TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -1039,9 +1039,9 @@ pub fn get_detail_account_group_tra(
 pub fn get_detail_account_group_equity(
     pool: web::Data<Pool>,
     group_id: u64
-) -> Result<Option<Vec<BybitEquity>>> {
+) -> Result<Option<Vec<GroupEquity>>> {
     let mut conn = pool.get_conn().unwrap();
-    let mut re: Vec<BybitEquity> = Vec::new();
+    let mut re: Vec<GroupEquity> = Vec::new();
     let value = &format!("select * from group_tra where group_id = {}", group_id);
     let tra_data = conn.query_map(
         value, 
@@ -1059,14 +1059,14 @@ pub fn get_detail_account_group_equity(
             |row| {
                 row.map(|(id,
                           name,
-                          time,
                           equity,
-                          r#type)| BybitEquity {
+                          time,
+                          r#type)| GroupEquity {
                                     
                           id,
                           name,
-                          time,
                           equity,
+                          time,
                           r#type
                                    
                         })
