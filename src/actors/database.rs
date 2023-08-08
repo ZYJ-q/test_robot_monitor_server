@@ -1068,6 +1068,7 @@ pub fn get_detail_account_group_equity(
         
         match account_data {
             Ok(equitys) => {
+                println!("获取到的权益数据{:?}", equitys);
                 for i in equitys{
                     re.push(i)
                 }
