@@ -1050,7 +1050,7 @@ pub fn get_detail_account_group_equity(
 
     for tra_id in tra_data{
         let account_data = conn.exec_first(
-        r"select * from bian_15m_equity where name = :name", 
+        r"select * from bian_15m_equity where name=:name", 
             params! {
                 "name" => tra_id.tra_id
             }
