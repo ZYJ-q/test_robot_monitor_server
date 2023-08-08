@@ -1039,9 +1039,9 @@ pub fn get_detail_account_group_tra(
 pub fn get_detail_account_group_equity(
     pool: web::Data<Pool>,
     group_id: u64
-) -> Result<Option<Vec<GroupEquity>>> {
+) -> Result<Option<Vec<BybitEquity>>> {
     let mut conn = pool.get_conn().unwrap();
-    let mut re: Vec<GroupEquity> = Vec::new();
+    let mut re: Vec<BybitEquity> = Vec::new();
     let value = &format!("select * from group_tra where group_id = {}", group_id);
     let tra_data = conn.query_map(
         value, 
@@ -1054,13 +1054,14 @@ pub fn get_detail_account_group_equity(
         values, 
             |(id,
                 name,
-                equity,
                 time,
-                r#type)| { GroupEquity {
+                equity,
+                r#type)| { BybitEquity {
                     id,
                           name,
-                          equity,
+                          
                           time,
+                          equity,
                           r#type
                 }}
         );
