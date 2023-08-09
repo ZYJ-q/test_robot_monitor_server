@@ -61,6 +61,16 @@ pub struct GroupAccountProRes {
     pub(crate) r#type: String,
 }
 
+
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct GroupEquitysProRes {
+    pub(crate) name: u64,
+    pub(crate) time: String,
+    pub(crate) equity: String,
+    pub(crate) r#type: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TradeRe {
     pub th_id: u64,

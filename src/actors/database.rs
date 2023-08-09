@@ -8,7 +8,7 @@ use mysql::*;
 
 // use super::AlarmUnit;
 use super::db_data::{Account, Active, AccountData, Product, Trader, GroupTra, NewTrade, GroupEquity, TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
-use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes};
+use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes, GroupEquitysProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
     let user = config_db.get("user").unwrap();
@@ -1039,9 +1039,9 @@ pub fn get_detail_account_group_tra(
 pub fn get_detail_account_group_equity(
     pool: web::Data<Pool>,
     group_id: u64
-) -> Result<Option<Vec<BybitEquity>>> {
+) -> Result<Option<Vec<GroupEquitysProRes>>> {
     let mut conn = pool.get_conn().unwrap();
-    let mut re: Vec<BybitEquity> = Vec::new();
+    let mut re: Vec<GroupEquitysProRes> = Vec::new();
     let value = &format!("select * from group_tra where group_id = {}", group_id);
     let tra_data = conn.query_map(
         value, 
@@ -1070,8 +1070,19 @@ pub fn get_detail_account_group_equity(
         match account_data {
             Ok(equitys) => {
                 println!("获取到的权益数据{:?}", equitys);
-                for i in equitys{
-                    re.push(i)
+                for i in 0..equitys.len() / 4{
+                    let times = &equitys[i * 4].time;
+                    let new_time = times.clone();
+                    let equitya = &equitys[i * 4].equity;
+                    let new_equity = equitya.clone();
+                    let status = &equitys[i * 4].r#type;
+                    let new_status = status.clone();
+                    re.push(GroupEquitysProRes {
+                        name: equitys[i * 4].name,
+                        time: new_time,
+                        equity: new_equity,
+                        r#type: new_status,
+                    })
                 }
 
             }
