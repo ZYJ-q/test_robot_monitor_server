@@ -1049,7 +1049,7 @@ pub fn get_detail_account_group_equity(
     ).unwrap();
 
     for tra_id in tra_data{
-        let values = &format!("select * from bian_15m_equity where name={} order by time", tra_id.tra_id);
+        let values = &format!("select * from bian_15m_equity where name={} order by equity", tra_id.tra_id);
         let account_data = conn.query_map(
         values, 
             |(id,
@@ -1069,7 +1069,7 @@ pub fn get_detail_account_group_equity(
         
         match account_data {
             Ok(equitys) => {
-                println!("获取到的权益数据{:?}", equitys);
+                // println!("获取到的权益数据{:?}", equitys);
                 for i in 0..equitys.len() / 4{
                     let times = &equitys[i * 4].time;
                     let new_time = times.clone();
