@@ -1049,13 +1049,13 @@ pub fn get_detail_account_group_equity(
     ).unwrap();
 
     for tra_id in tra_data{
-        let values = &format!("select * from bian_15m_equity where name={} order by equity", tra_id.tra_id);
+        let values = &format!("select * from bian_15m_equity where name={} order by time", tra_id.tra_id);
         let account_data = conn.query_map(
         values, 
             |(id,
                 name,
-                time,
                 equity,
+                time,
                 r#type)| { BybitEquity {
                     id,
                           name,
