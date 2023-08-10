@@ -59,6 +59,7 @@ pub struct GroupAccountProRes {
     pub(crate) avaliable_balance: String,
     pub(crate) tra_venue: String,
     pub(crate) r#type: String,
+    pub(crate) total_balance: String,
 }
 
 

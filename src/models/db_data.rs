@@ -109,6 +109,7 @@ pub struct TraderMessage {
     pub avaliable_balance: String,
     pub tra_venue: String,
     pub r#type: String,
+    pub total_balance: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

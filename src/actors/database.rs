@@ -623,7 +623,7 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
                                 open_order_amt,
                                 avaliable_balance,
                                 tra_venue,
-                                r#type,)| TraderMessage {
+                                r#type, total_balance,)| TraderMessage {
                                 
                                     id,
                                     tra_id,
@@ -635,6 +635,7 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
                                     avaliable_balance,
                                     tra_venue,
                                     r#type,
+                                    total_balance,
                                
                             })
                         },
@@ -903,7 +904,8 @@ pub fn get_account_group_tra(
                                     open_order_amt,
                                     avaliable_balance,
                                     tra_venue,
-                                    r#type,)| TraderMessage {
+                                    r#type,
+                                    total_balance,)| TraderMessage {
                                     
                                         id,
                                         tra_id,
@@ -915,6 +917,7 @@ pub fn get_account_group_tra(
                                         avaliable_balance,
                                         tra_venue,
                                         r#type,
+                                        total_balance,
                                    
                                 })
                             },
@@ -935,7 +938,8 @@ pub fn get_account_group_tra(
                                         open_order_amt: trader_message.open_order_amt,
                                         avaliable_balance: trader_message.avaliable_balance,
                                         tra_venue: trader_message.tra_venue,
-                                        r#type: trader_message.r#type
+                                        r#type: trader_message.r#type,
+                                        total_balance: trader_message.total_balance
                                     })
 
                                 }
@@ -997,7 +1001,8 @@ pub fn get_detail_account_group_tra(
                           open_order_amt,
                           avaliable_balance,
                           tra_venue,
-                          r#type,)| TraderMessage {
+                          r#type,
+                          total_balance,)| TraderMessage {
                                     
                           id,
                           tra_id,
@@ -1009,6 +1014,7 @@ pub fn get_detail_account_group_tra(
                           avaliable_balance,
                           tra_venue,
                           r#type,
+                          total_balance,
                                    
                         })
                     },
@@ -1623,7 +1629,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
                 open_order_amt,
                 avaliable_balance,
                 tra_venue,
-                r#type,)| TraderMessage {
+                r#type, total_balance,)| TraderMessage {
                 
                     id,
                     tra_id,
@@ -1635,6 +1641,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
                     avaliable_balance,
                     tra_venue,
                     r#type,
+                    total_balance,
                
             })
         },
