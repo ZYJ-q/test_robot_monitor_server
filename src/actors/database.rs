@@ -1079,6 +1079,7 @@ pub fn get_detail_account_group_equity(
                 for i in 0..equitys.len() / 4{
                     let times = &equitys[i * 4].time;
                     let new_time = times.clone();
+                    println!("数据{}", new_time);
                     let equitya = &equitys[i * 4].equity;
                     let new_equity = equitya.clone();
                     let status = &equitys[i * 4].r#type;
