@@ -2394,8 +2394,8 @@ pub fn get_date_new_bybit_trades(
         // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name)| {
-                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name}
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker)| {
+                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker}
             }
             ).unwrap();
         // println!("获取历史交易数据angus{:?}", trades);
@@ -2560,8 +2560,8 @@ pub fn get_date_bybit_history_trades(
         // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name)| {
-                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name}
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker)| {
+                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker}
             }
             ).unwrap();
         // println!("获取历史交易数据angus{:?}", trades);

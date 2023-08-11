@@ -187,7 +187,8 @@ pub struct BybitNewTrade {
     pub quote_qty: String,
     pub commission: String,
     pub r#type: String,
-    pub name: u64
+    pub name: u64,
+    pub is_maker: String
 }
 
 
