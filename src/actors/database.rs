@@ -1076,7 +1076,7 @@ pub fn get_detail_account_group_equity(
         match account_data {
             Ok(equitys) => {
                 println!("获取到的权益数据{}", equitys.len() / 4);
-                let len = (equitys.len() + 4) / 4;
+                let len = (equitys.len() + 5) / 4;
                 for i in 0..len{
                     let times = &equitys[i * 4].time;
                     let new_time = times.clone();
@@ -1085,6 +1085,8 @@ pub fn get_detail_account_group_equity(
                     let new_equity = equitya.clone();
                     let status = &equitys[i * 4].r#type;
                     let new_status = status.clone();
+
+
                     re.push(GroupEquitysProRes {
                         name: equitys[i * 4].name,
                         time: new_time,
