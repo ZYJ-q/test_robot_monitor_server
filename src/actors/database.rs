@@ -2387,15 +2387,15 @@ pub fn get_date_new_bybit_trades(
     tra_id: &str
 ) -> Result<Vec<BybitNewTrade>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from new_bybit_traders where time >= {} and name = {} order by time", start_time, tra_id);
+    let value = &format!("select tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id from new_bybit_traders where time >= {} and name = {} order by time", start_time, tra_id);
 
         
 
         // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker)| {
-                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker}
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id)| {
+                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id}
             }
             ).unwrap();
         // println!("获取历史交易数据angus{:?}", trades);
@@ -2553,15 +2553,15 @@ pub fn get_date_bybit_history_trades(
 ) -> Result<Vec<BybitNewTrade>> {
     let mut conn = pool.get_conn().unwrap();
     // let mut re: Vec<Trade> = Vec::new();
-    let value = &format!("select * from new_bybit_traders where time >= {} and time <= {} and name = {}", start_time, end_time, tra_id);
+    let value = &format!("select tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id from new_bybit_traders where time >= {} and time <= {} and name = {}", start_time, end_time, tra_id);
 
         
 
         // let value = &format!("select * from bian_traders where tra_time >= {} and name = {}", start_time, tra_id);
         let trades = conn.query_map(
             value,
-            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker)| {
-                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, r#type, name, is_maker}
+            |(tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id)| {
+                    BybitNewTrade{ tra_order_id, th_id, time, symbol, side, price, qty, quote_qty, commission, name, is_maker, exec_id}
             }
             ).unwrap();
         // println!("获取历史交易数据angus{:?}", trades);
