@@ -1115,7 +1115,7 @@ pub fn get_detail_account_group_equity(
                     let t = NaiveDateTime::parse_from_str(&time, "%Y/%m/%d %H:%M:%S").unwrap();
                     let date_time = format!("{}:00:00", t.format("%Y/%m/%d %H"));
 
-                    println!("处理之后的时间{}", date_time);
+                    // println!("处理之后的时间{}", date_time);
 
                     if date_time != data {
                         data = format!("{}:00:00", t.format("%Y/%m/%d %H"));
