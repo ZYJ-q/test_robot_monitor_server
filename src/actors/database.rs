@@ -1154,8 +1154,13 @@ pub fn is_acc_group(pool: web::Data<Pool>, account_id: u64, group_id: u64) -> bo
     );
     match res {
         Ok(ids) => {
-            println!("找到了{:?}",ids);
+            if ids.len() == 0 {
+                println!("找到了{:?}",ids);
+            return false;
+            } else {
+                println!("找到了{:?}",ids);
             return true;
+            }
         }
         Err(_) => {
             println!("没找到");
