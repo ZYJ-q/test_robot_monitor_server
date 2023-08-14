@@ -1120,7 +1120,7 @@ pub fn get_detail_account_group_equity(
                     if date_time != data {
                         data = format!("{}:00:00", t.format("%Y/%m/%d %H"));
                         re.push(GroupEquitysProRes {
-                            name: equitys[i * 4].name,
+                            name: equitys[i].name,
                             time: new_time,
                             equity: new_equity,
                             r#type: new_status,
