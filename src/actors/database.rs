@@ -1107,9 +1107,9 @@ pub fn get_detail_account_group_equity(
                 for i in 0..len{
                     let times = &equitys[i].time;
                     let new_time = times.clone();
-                    let equitya = &equitys[i * 4].equity;
+                    let equitya = &equitys[i].equity;
                     let new_equity = equitya.clone();
-                    let status = &equitys[i * 4].r#type;
+                    let status = &equitys[i].r#type;
                     let new_status = status.clone();
                     let time = &new_time[1..&new_time.len()-1];
                     let t = NaiveDateTime::parse_from_str(&time, "%Y/%m/%d %H:%M:%S").unwrap();
