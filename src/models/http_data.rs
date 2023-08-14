@@ -141,6 +141,23 @@ pub struct InsertAccounts {
 
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct IsAccGroup {
+    pub r#type: String,
+    pub token: String,
+    pub account_id: u64,
+    pub group_id: u64
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IsAccTra {
+    pub r#type: String,
+    pub token: String,
+    pub account_id: u64,
+    pub tra_id: u64
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct InsertAccount {
     pub token: String,
     pub tra_venue: String, 

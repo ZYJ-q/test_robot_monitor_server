@@ -1143,6 +1143,43 @@ pub fn get_detail_account_group_equity(
 }
                 
 
+pub fn is_acc_group(pool: web::Data<Pool>, account_id: u64, group_id: u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"select * from acc_group where acc_id = :acc_id and group_id = :group_id",
+        params! {
+            "acc_id" => account_id,
+            "group_id" => group_id,
+        },
+    );
+    match res {
+        Ok(()) => {
+            return true;
+        }
+        Err(_) => {
+            return false;
+        }
+    }
+}
+
+pub fn is_acc_tra(pool: web::Data<Pool>, account_id: u64, tra_id: u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"select * from test_acc_tra where acc_id = :acc_id and tra_id = :tra_id",
+        params! {
+            "acc_id" => account_id,
+            "tra_id" => tra_id,
+        },
+    );
+    match res {
+        Ok(()) => {
+            return true;
+        }
+        Err(_) => {
+            return false;
+        }
+    }
+}
 
 
 
