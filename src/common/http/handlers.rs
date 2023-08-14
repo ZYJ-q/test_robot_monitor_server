@@ -998,7 +998,7 @@ pub async fn is_account_group(mut payload: web::Payload, db_pool: web::Data<Pool
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("失败"));
+            return Err(error::ErrorNotFound(data));
         },
     }
 }
@@ -1036,7 +1036,7 @@ pub async fn is_account_tra(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("失败"));
+            return Err(error::ErrorNotFound(data));
         },
     }
 }
