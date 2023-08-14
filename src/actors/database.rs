@@ -1145,16 +1145,16 @@ pub fn get_detail_account_group_equity(
 
 pub fn is_acc_group(pool: web::Data<Pool>, account_id: u64, group_id: u64) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let res = conn.exec_drop(
-        r"select * from acc_group where acc_id = :acc_id and group_id = :group_id",
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select id from acc_group where acc_id = :acc_id and group_id = :group_id",
         params! {
             "acc_id" => account_id,
             "group_id" => group_id,
         },
     );
     match res {
-        Ok(()) => {
-            println!("找到了{:?}", res);
+        Ok(ids) => {
+            println!("找到了{:?}",ids);
             return true;
         }
         Err(_) => {
