@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web::web;
+use chrono::NaiveDateTime;
 use mysql::prelude::*;
 use mysql::*;
 
@@ -1075,25 +1076,55 @@ pub fn get_detail_account_group_equity(
         
         match account_data {
             Ok(equitys) => {
-                println!("获取到的权益数据{}", equitys.len() / 4);
-                let len = (equitys.len() + 5) / 4;
+                // let data = "";
+                // println!("获取到的权益数据{}", equitys.len() / 4);
+                // let len = (equitys.len() + 5) / 4;
+                // for i in 0..len{
+                    
+                //     if i * 4 < equitys.len() {
+                //         let times = &equitys[i * 4].time;
+                //     let new_time = times.clone();
+                //     println!("数据{}", new_time);
+                //     let equitya = &equitys[i * 4].equity;
+                //     let new_equity = equitya.clone();
+                //     let status = &equitys[i * 4].r#type;
+                //     let new_status = status.clone();
+
+
+                //     re.push(GroupEquitysProRes {
+                //         name: equitys[i * 4].name,
+                //         time: new_time,
+                //         equity: new_equity,
+                //         r#type: new_status,
+                //     })
+
+                //     }
+                    
+                // }
+
+                let mut data: String = "".to_string();
+                let len = equitys.len();
                 for i in 0..len{
-                    if i * 4 < equitys.len() {
-                        let times = &equitys[i * 4].time;
+                    let times = &equitys[i].time;
                     let new_time = times.clone();
-                    println!("数据{}", new_time);
                     let equitya = &equitys[i * 4].equity;
                     let new_equity = equitya.clone();
                     let status = &equitys[i * 4].r#type;
                     let new_status = status.clone();
+                    let time = &new_time[1..&new_time.len()-1];
+                    let t = NaiveDateTime::parse_from_str(&time, "%Y/%m/%d %H:%M:%S").unwrap();
+                    let date_time = format!("{}:00:00", t.format("%Y/%m/%d %H"));
 
+                    println!("处理之后的时间{}", date_time);
 
-                    re.push(GroupEquitysProRes {
-                        name: equitys[i * 4].name,
-                        time: new_time,
-                        equity: new_equity,
-                        r#type: new_status,
-                    })
+                    if date_time != data {
+                        data = format!("{}:00:00", t.format("%Y/%m/%d %H"));
+                        re.push(GroupEquitysProRes {
+                            name: equitys[i * 4].name,
+                            time: new_time,
+                            equity: new_equity,
+                            r#type: new_status,
+                        })
 
                     }
                     
