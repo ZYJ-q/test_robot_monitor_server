@@ -998,7 +998,10 @@ pub async fn is_account_group(mut payload: web::Payload, db_pool: web::Data<Pool
             }));
         },
         false => {
-            return Err(error::ErrorNotFound(data));
+            return Err(HttpResponse::Ok().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }
