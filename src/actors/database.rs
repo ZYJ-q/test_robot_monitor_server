@@ -1171,18 +1171,25 @@ pub fn is_acc_group(pool: web::Data<Pool>, account_id: u64, group_id: u64) -> bo
 
 pub fn is_acc_tra(pool: web::Data<Pool>, account_id: u64, tra_id: u64) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let res = conn.exec_drop(
-        r"select * from test_acc_tra where acc_id = :acc_id and tra_id = :tra_id",
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select ap_id from test_acc_tra where acc_id = :acc_id and tra_id = :tra_id",
         params! {
             "acc_id" => account_id,
             "tra_id" => tra_id,
         },
     );
     match res {
-        Ok(()) => {
+        Ok(ids) => {
+            if ids.len() == 0 {
+                println!("找到了{:?}",ids);
+            return false;
+            } else {
+                println!("找到了{:?}",ids);
             return true;
+            }
         }
         Err(_) => {
+            println!("没找到");
             return false;
         }
     }
