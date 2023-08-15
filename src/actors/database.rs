@@ -1043,6 +1043,85 @@ pub fn get_detail_account_group_tra(
 }
 
 
+
+pub fn get_account_group_tras(
+    pool: web::Data<Pool>,
+    group_id: u64
+) -> Result<Option<Vec<Trader>>> {
+    let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<Trader> = Vec::new();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from group_tra where group_id = :group_id",
+        params! {
+            "group_id" => group_id
+        },
+    );
+    match res {
+        Ok(tra_ids) => {
+            for tra_id in tra_ids {
+                let mut conn = pool.get_conn().unwrap();
+                let prod = conn
+                    .exec_first(
+                        r"select * from trader where tra_id = :tra_id",
+                        params! {
+                            "tra_id" => tra_id
+                        },
+                    )
+                    .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(|(
+                                tra_id,
+                                tra_venue,
+                                tra_currency,
+                                api_key,
+                                secret_key,
+                                r#type,
+                                name,
+                                alarm,
+                                threshold,
+                                borrow,
+                                amount,
+                                wx_hook,
+                            )| Trader {
+                                tra_id,
+                                tra_venue,
+                                tra_currency,
+                                api_key,
+                                secret_key,
+                                r#type,
+                                name,
+                                alarm,
+                                threshold,
+                                borrow,
+                                amount,
+                                wx_hook,
+                            })
+                        },
+                    );
+                match prod {
+                    Ok(produc) => match produc {
+                        Some(product) => {
+                            re.push(product);
+                        }
+                        None => {
+                            continue;
+                        }
+                    },
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            return Ok(Some(re));
+        }
+        Err(e) => return Err(e),
+    }
+    
+}
+
+
+
 pub fn get_detail_account_group_equity(
     pool: web::Data<Pool>,
     group_id: u64

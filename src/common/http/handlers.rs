@@ -2210,6 +2210,44 @@ pub async fn get_account_group_data(mut payload: web::Payload, db_pool: web::Dat
 }
 
 
+pub async fn get_account_group(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<Group>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let date =  database::get_account_group(db_pool.clone(), obj.account_id);
+        match date {
+            Ok(traders) => {
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+}
+
+
 
 pub async fn get_account_detail_group_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
@@ -2234,6 +2272,44 @@ pub async fn get_account_detail_group_data(mut payload: web::Payload, db_pool: w
     }
 
     let date =  database::get_detail_account_group_tra(db_pool.clone(), obj.group_id);
+        match date {
+            Ok(traders) => {
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+}
+
+
+pub async fn get_account_group_tra(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<DetailGroup>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let date =  database::get_account_group_tras(db_pool.clone(), obj.group_id);
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {
