@@ -1039,7 +1039,10 @@ pub async fn is_account_tra(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(error::ErrorNotFound(data));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }
