@@ -116,7 +116,8 @@ pub struct TraderMessage {
 pub struct AccountData {
     pub ap_id: u64,
     pub acc_id: u64,
-    pub tra_id: u64
+    pub tra_id: u64,
+    pub is_show: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

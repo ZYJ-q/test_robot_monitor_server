@@ -528,11 +528,13 @@ pub fn get_account_data(pool: web::Data<Pool>, account_id: &u64) -> Result<Vec<A
                 |(
                     ap_id,
                     acc_id,
-                    tra_id
+                    tra_id,
+                    is_show
                 )| AccountData {
                     ap_id,
                     acc_id,
-                    tra_id
+                    tra_id,
+                    is_show
                 }
                 ).unwrap();
     return Ok(res);
