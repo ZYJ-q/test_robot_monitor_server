@@ -522,7 +522,7 @@ pub fn get_account_list(pool: web::Data<Pool>) -> Result<Vec<Trader>> {
 // 查看账户是否被监控数据
 pub fn get_account_data(pool: web::Data<Pool>, account_id: &u64) -> Result<Vec<AccountData>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from test_acc_tra where acc_id = {}", account_id);
+    let value = &format!("select * from acc_tra where acc_id = {} and is_show = {}", account_id, true.to_string());
     let res = conn.query_map(
                 value,
                 |(
@@ -596,9 +596,10 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
     let mut products: Vec<TraderMessage> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
-        r"select tra_id from test_acc_tra where acc_id = :acc_id",
+        r"select tra_id from acc_tra where acc_id = :acc_id and is_show = :is_show",
         params! {
-            "acc_id" => account_id
+            "acc_id" => account_id,
+            "is_show" => "true"
         },
     );
     match res {
@@ -666,9 +667,10 @@ pub fn get_all_traders(pool: web::Data<Pool>, account_id: &u64) -> Result<Option
     let mut products: Vec<Trader> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
-        r"select tra_id from test_acc_tra where acc_id = :acc_id",
+        r"select tra_id from acc_tra where acc_id = :acc_id and is_show = :is_show",
         params! {
-            "acc_id" => account_id
+            "acc_id" => account_id,
+            "is_show" => "true"
         },
     );
     match res {
@@ -777,10 +779,11 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
         Ok(resq) => match resq {
             Some(active) => {
                 let tra = conn.exec_drop(
-                    r"insert into test_acc_tra (acc_id, tra_id) values (:acc_id, :tra_id)",
+                    r"insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)",
                     params! {
                         "acc_id" => account_id,
-                        "tra_id" => active.tra_id
+                        "tra_id" => active.tra_id,
+                        "is_show" => "true"
                     },
                 );
                 match tra {
@@ -1251,7 +1254,7 @@ pub fn is_acc_group(pool: web::Data<Pool>, account_id: u64, group_id: u64) -> bo
 pub fn is_acc_tra(pool: web::Data<Pool>, account_id: u64, tra_id: u64) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
-        r"select ap_id from test_acc_tra where acc_id = :acc_id and tra_id = :tra_id",
+        r"select ap_id from acc_tra where acc_id = :acc_id and tra_id = :tra_id",
         params! {
             "acc_id" => account_id,
             "tra_id" => tra_id,
@@ -1349,8 +1352,9 @@ pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u
     let mut conn = pool.get_conn().unwrap();
     for tra in &tra_id {
         let res = conn.exec_drop(
-            r"delete from test_acc_tra where acc_id=:acc_id and tra_id=:tra_id",
+            r"update from acc_tra set is_show = :is_show where acc_id=:acc_id and tra_id=:tra_id",
             params! {
+                "is_show" => "false",
                 "tra_id" => tra,
                 "acc_id" => account_id
             },
@@ -3115,7 +3119,7 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
     match res {
         Ok(()) => {
             let account = conn.exec_drop(
-                r"delete from test_acc_tra where tra_id = :tra_id and acc_id = :acc_id",
+                r"delete from acc_tra where tra_id = :tra_id and acc_id = :acc_id",
                 params! {
                     "tra_id" => tra_id,
                     "acc_id" => account_id
@@ -3143,7 +3147,7 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
 pub fn remove_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"delete from test_acc_tra where tra_id = :tra_id and acc_id = :acc_id",
+        r"delete from acc_tra where tra_id = :tra_id and acc_id = :acc_id",
         params! {
             "tra_id" => tra_id,
             "acc_id" => account_id
