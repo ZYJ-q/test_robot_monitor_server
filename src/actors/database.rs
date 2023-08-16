@@ -1776,6 +1776,67 @@ pub fn get_one_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<HashMap<St
 }
 
 
+
+pub fn get_only_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<Option<Vec<Trader>>> {
+    let mut re: Vec<Trader> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+    .exec_first(
+                r"select * from trader where tra_id = :tra_id",
+                params! {
+                        "tra_id" => tra_id
+                        },
+                )
+                .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(
+                                |(
+                                    tra_id,
+                                    tra_venue,
+                                    tra_currency,
+                                    api_key,
+                                    secret_key,
+                                    r#type,
+                                    name,
+                                    alarm,
+                                    threshold,
+                                    borrow,
+                                    amount,
+                                    wx_hook
+                                )| Trader {
+                                    tra_id,
+                                    tra_venue,
+                                    tra_currency,
+                                    api_key,
+                                    secret_key,
+                                    r#type,
+                                    name,
+                                    alarm,
+                                    threshold,
+                                    borrow,
+                                    amount,
+                                    wx_hook
+                                },
+                            )
+                        },
+                    );
+                    match res {
+                        Ok(trader) => match trader {
+                            Some(tra) => {
+                                re.push(tra);
+                            }
+                            None => {
+                                return Ok(Some(re));
+                            }
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    }
+    return Ok(Some(re));
+}
+
 pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Vec<TraderMessage>> {
     let mut traders: Vec<TraderMessage> = Vec::new();
     let mut conn = pool.get_conn().unwrap();
