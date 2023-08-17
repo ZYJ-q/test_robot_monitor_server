@@ -1364,10 +1364,11 @@ pub fn share_account (pool: web::Data<Pool>, account_id: &str, tra_id: &u64 ) ->
         Ok(acc_ids) => {
             for acc_id in acc_ids {
                 let account = conn.exec_drop(
-                    r"insert into acc_tra (acc_id, tra_id) values (:acc_id, :tra_id)",
+                    r"insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)",
                     params! {
                         "acc_id" => acc_id,
-                        "tra_id" => tra_id
+                        "tra_id" => tra_id,
+                        "is_show" => "true"
                     },
                 );
 
