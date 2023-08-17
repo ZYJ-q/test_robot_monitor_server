@@ -1399,7 +1399,7 @@ pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id:
 // 获取分享记录
 pub fn get_account_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<Vec<ShareList>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from share_accounts where from_id = {}", from_id.to_string());
+    let value = &format!("select * from share_accounts where from_id = {}", from_id);
     let res = conn.query_map(
         value, 
         |(
