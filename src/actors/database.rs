@@ -1539,7 +1539,17 @@ pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id
                             "tra_id" => tra_id,
                             "is_show" => "false"
                         }
-                    ).unwrap();
+                    );
+
+                    match tra {
+                        Ok(()) => {
+                            continue;
+                        }
+                        Err(_e) => {
+                            return false;
+                        }
+                        
+                    }
                 }
                 return true;
             }
