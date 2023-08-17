@@ -1400,6 +1400,7 @@ pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id:
 pub fn get_account_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<Vec<ShareList>> {
     let mut conn = pool.get_conn().unwrap();
     let value = &format!("select * from share_accounts where from_id = {}", from_id);
+    println!("value{}", value);
     let res = conn.query_map(
         value, 
         |(
