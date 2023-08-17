@@ -1530,9 +1530,10 @@ pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id
 
         match res {
             Ok(tra_ids) => {
+                println!("tra_ids{:?}", tra_ids);
                 for tra_id in tra_ids {
                     let tra = conn.exec_drop(
-                        "insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)", 
+                        "insert into acc_group (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)", 
                         params! {
                             "acc_id" => account_id,
                             "tra_id" => tra_id,
