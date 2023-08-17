@@ -1398,7 +1398,7 @@ pub fn share_account (pool: web::Data<Pool>, account_id: &u64, tra_id: &u64 ) ->
 }
 
 // 添加分享记录
-pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id: &u64 ) -> bool {
+pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id: &str ) -> bool {
     let mut conn = pool.get_conn().unwrap();
         let res = conn.exec_drop(
             r"insert into share_accounts (from_id, to_id, tra_id) values (:from_id, :to_id, :tra_id)",

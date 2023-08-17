@@ -161,7 +161,7 @@ pub struct IsAccTra {
 pub struct AddShareList {
     pub r#type: String,
     pub token: String,
-    pub tra_id: u64,
+    pub tra_id: String,
     pub from_id: String,
     pub to_id: String
 }
