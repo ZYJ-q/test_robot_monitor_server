@@ -1522,7 +1522,7 @@ pub fn share_group_account (pool: web::Data<Pool>, account_id: &u64, group_id: &
 pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id: &u64 ) -> bool {
     let mut conn = pool.get_conn().unwrap();
         let res: Result<Vec<u64>> = conn.exec(
-            r"select tra_id group_tra where group_id = :group_id",
+            r"select tra_id from group_tra where group_id = :group_id",
             params! {
                 "group_id" => group_id
             },
