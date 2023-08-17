@@ -120,6 +120,15 @@ pub struct AccountData {
     pub is_show: String,
 }
 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShareList {
+    pub sh_id: u64,
+    pub from_id: String,
+    pub to_id: String,
+    pub tra_id: String
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InvitationData {
     pub code: String,

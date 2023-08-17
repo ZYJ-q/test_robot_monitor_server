@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use actix_web::web;
+use actix_web::web::{self, to};
 use chrono::NaiveDateTime;
 use mysql::prelude::*;
 use mysql::*;
@@ -8,7 +8,7 @@ use mysql::*;
 // use crate::common;
 
 // use super::AlarmUnit;
-use super::db_data::{Account, Active, AccountData, Product, Trader, GroupTra, NewTrade, GroupEquity, TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{Account, Active, AccountData, Product, Trader, ShareList, GroupTra, NewTrade, GroupEquity, TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes, GroupEquitysProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -1375,6 +1375,150 @@ pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u
 }
 
 
+// 分享给那个用户，给那个用户添加账户权限
+pub fn share_account (pool: web::Data<Pool>, account_id: &u64, tra_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+        let res = conn.exec_drop(
+            r"insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)",
+            params! {
+                "is_show" => "true",
+                "tra_id" => tra_id,
+                "acc_id" => account_id
+            },
+        );
+
+        match res {
+            Ok(()) => {
+                return true;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+}
+
+// 添加分享记录
+pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+        let res = conn.exec_drop(
+            r"insert into share_accounts (from_id, to_id, tra_id) values (:from_id, :to_id, :tra_id)",
+            params! {
+                "from_id" => from_id,
+                "to_id" => to_id,
+                "tra_id" => tra_id
+            },
+        );
+
+        match res {
+            Ok(()) => {
+                return true;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+}
+
+
+// 获取分享记录
+pub fn get_account_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<Vec<ShareList>> {
+    let mut conn = pool.get_conn().unwrap();
+    let value = &format!("select * from share_accounts where from_id = {}", from_id.to_string());
+    let res = conn.query_map(
+        value, 
+        |(
+            sh_id,
+            from_id,
+            to_id,
+            tra_id,
+
+        )| ShareList {
+            sh_id,
+            from_id,
+            to_id,
+            tra_id,
+        }
+    ).unwrap();
+        
+    return Ok(res);
+}
+
+// // 删除分享记录
+// pub fn delete_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<Vec<ShareList>> {
+//     let mut conn = pool.get_conn().unwrap();
+//     let value = &format!("select * from share_accounts where from_id = {}", from_id.to_string());
+//     let res = conn.query_map(
+//         value, 
+//         |(
+//             sh_id,
+//             from_id,
+//             to_id,
+//             tra_id,
+
+//         )| ShareList {
+//             sh_id,
+//             from_id,
+//             to_id,
+//             tra_id,
+//         }
+//     ).unwrap();
+        
+//     return Ok(res);
+// }
+
+
+// 分享给那个用户，给那个用户添加账户组权限
+pub fn share_group_account (pool: web::Data<Pool>, account_id: &u64, group_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+        let res = conn.exec_drop(
+            r"insert into acc_group (acc_id, group_id) values (:acc_id, :group_id)",
+            params! {
+                "acc_id" => account_id,
+                "group_id" => group_id
+            },
+        );
+
+        match res {
+            Ok(()) => {
+                return true;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+}
+
+// 分享模块，添加用户组找到里面的tra_id,并添加到 acc_tra 数据库中
+pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+        let res: Result<Vec<u64>> = conn.exec(
+            r"select tra_id group_tra where group_id = :group_id",
+            params! {
+                "group_id" => group_id
+            },
+        );
+
+        match res {
+            Ok(tra_ids) => {
+                for tra_id in tra_ids {
+                    let tra = conn.exec_drop(
+                        "insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)", 
+                        params! {
+                            "acc_id" => account_id,
+                            "tra_id" => tra_id,
+                            "is_show" => "false"
+                        }
+                    ).unwrap();
+                }
+                return true;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+}
+
+
 // 添加账号组权限
 pub fn insert_acc_group(pool: web::Data<Pool>, name: &str, account_id: &u64) -> bool {
     let mut conn = pool.get_conn().unwrap();
@@ -2278,19 +2422,83 @@ pub fn clear_data(
 pub fn get_bybit_equity(
     pool: web::Data<Pool>,
     name: &str
-) -> Result<Vec<BybitEquity>> {
+) -> Result<Option<Vec<GroupEquitysProRes>>> {
     let mut conn = pool.get_conn().unwrap();
-    let value = &format!("select * from bian_15m_equity where name = {}", name);
+    let mut re: Vec<GroupEquitysProRes> = Vec::new();
+    let value = &format!("select * from bian_15m_equity where name = {} order by time", name);
     // let mut re: Vec<Trade> = Vec::new();
-        let equitys = conn.query_map(
+        let equitys_data = conn.query_map(
             value,
             |(id, name, equity, time, r#type)| {
                 BybitEquity{id, name, equity, time, r#type}
             }
-            ).unwrap();
+            );
+                
+                match equitys_data {
+                    Ok(equitys) => {
+                        // let data = "";
+                        // println!("获取到的权益数据{}", equitys.len() / 4);
+                        // let len = (equitys.len() + 5) / 4;
+                        // for i in 0..len{
+                            
+                        //     if i * 4 < equitys.len() {
+                        //         let times = &equitys[i * 4].time;
+                        //     let new_time = times.clone();
+                        //     println!("数据{}", new_time);
+                        //     let equitya = &equitys[i * 4].equity;
+                        //     let new_equity = equitya.clone();
+                        //     let status = &equitys[i * 4].r#type;
+                        //     let new_status = status.clone();
+        
+        
+                        //     re.push(GroupEquitysProRes {
+                        //         name: equitys[i * 4].name,
+                        //         time: new_time,
+                        //         equity: new_equity,
+                        //         r#type: new_status,
+                        //     })
+        
+                        //     }
+                            
+                        // }
+        
+                        let mut data: String = "".to_string();
+                        let len = equitys.len();
+                        for i in 0..len{
+                            let times = &equitys[i].time;
+                            let new_time = times.clone();
+                            let equitya = &equitys[i].equity;
+                            let new_equity = equitya.clone();
+                            let status = &equitys[i].r#type;
+                            let new_status = status.clone();
+                            let time = &new_time[1..&new_time.len()-1];
+                            let t = NaiveDateTime::parse_from_str(&time, "%Y/%m/%d %H:%M:%S").unwrap();
+                            let date_time = format!("{}:00:00", t.format("%Y/%m/%d %H"));
+        
+                            // println!("处理之后的时间{}", date_time);
+        
+                            if date_time != data {
+                                data = format!("{}:00:00", t.format("%Y/%m/%d %H"));
+                                re.push(GroupEquitysProRes {
+                                    name: equitys[i].name,
+                                    time: new_time,
+                                    equity: new_equity,
+                                    r#type: new_status,
+                                })
+        
+                            }
+                            
+                        }
+        
+                    }
+                    Err(_) => {
+                        
+                    }
+                    
+                }
         // println!("获取历史交易数据account1{:?}", trades);
         // println!("equity权益数据{:?}", equitys);
-        return Ok(equitys);
+        return Ok(Some(re));
 }
 
 // 获取bian权益数据
@@ -2317,19 +2525,58 @@ pub fn get_bian_equity(
 pub fn get_total_bybit_equity(
     pool: web::Data<Pool>,
     name: &str
-) -> Result<Vec<BybitEquity>> {
+) ->Result<Option<Vec<GroupEquitysProRes>>> {
     let mut conn = pool.get_conn().unwrap();
+    let mut re: Vec<GroupEquitysProRes> = Vec::new();
+    let value = &format!("select * from bian_15m_equity where name = {} order by time", name);
     // let mut re: Vec<Trade> = Vec::new();
-    let value = &format!("select * from bian_15m_equity where name = {}", name);
-        let equitys = conn.query_map(
+        let equitys_data = conn.query_map(
             value,
-            |(id, name, time, equity, r#type)| {
-                BybitEquity{id, name, time, equity, r#type}
+            |(id, name, equity, time, r#type)| {
+                BybitEquity{id, name, equity, time, r#type}
             }
-            ).unwrap();
+            );
+                
+                match equitys_data {
+                    Ok(equitys) => {
+        
+                        let mut data: String = "".to_string();
+                        let len = equitys.len();
+                        for i in 0..len{
+                            let times = &equitys[i].time;
+                            let new_time = times.clone();
+                            let equitya = &equitys[i].equity;
+                            let new_equity = equitya.clone();
+                            let status = &equitys[i].r#type;
+                            let new_status = status.clone();
+                            let time = &new_time[1..&new_time.len()-1];
+                            let t = NaiveDateTime::parse_from_str(&time, "%Y/%m/%d %H:%M:%S").unwrap();
+                            let date_time = format!("{}:00:00", t.format("%Y/%m/%d %H"));
+        
+                            // println!("处理之后的时间{}", date_time);
+        
+                            if date_time != data {
+                                data = format!("{}:00:00", t.format("%Y/%m/%d %H"));
+                                re.push(GroupEquitysProRes {
+                                    name: equitys[i].name,
+                                    time: new_time,
+                                    equity: new_equity,
+                                    r#type: new_status,
+                                })
+        
+                            }
+                            
+                        }
+        
+                    }
+                    Err(_) => {
+                        
+                    }
+                    
+                }
         // println!("获取历史交易数据account1{:?}", trades);
         // println!("equity权益数据{:?}", equitys);
-        return Ok(equitys);
+        return Ok(Some(re));
 }
 
 // 获取bian权益数据

@@ -148,12 +148,22 @@ pub struct IsAccGroup {
     pub group_id: u64
 }
 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IsAccTra {
     pub r#type: String,
     pub token: String,
     pub account_id: u64,
     pub tra_id: u64
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddShareList {
+    pub r#type: String,
+    pub token: String,
+    pub tra_id: u64,
+    pub from_id: String,
+    pub to_id: String
 }
 
 
@@ -181,6 +191,15 @@ pub struct AccountEquity {
     pub token: String,
     pub name: String
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccShareList {
+    // pub prod_id: String,
+    pub r#type: String,
+    pub token: String,
+    pub from_id: String
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SelectAccount {
     pub tra_id: String,

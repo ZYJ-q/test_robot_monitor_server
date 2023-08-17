@@ -304,18 +304,7 @@ pub async fn get_spot_bybit_positions(
               } else {
                   let symbol = objs.get("coin").unwrap().as_str().unwrap();
                   let symbols = format!("{}USDT-SPOT", symbol);
-                  if let Some(data) = http_api.position("linear").await{
-                  
-                    let v: Value = serde_json::from_str(&data).unwrap();
-                    let open_orders_obj = v.as_object().unwrap();
-                    let result = open_orders_obj.get("result").unwrap().as_object().unwrap();
-                    let list = result.get("list").unwrap().as_array().unwrap();
-                    if list.len() != 0{
-                      let lists = list[0].as_object().unwrap();
-                      let open_symbol = lists.get("symbol").unwrap().as_str().unwrap();
-                      spot_symbol = &open_symbol[0..&open_symbol.len() -4]; 
-                      println!("symbol{}", spot_symbol);
-                      if symbol == spot_symbol{
+                      if symbol != "USDC" || symbol != "USDT"{
                         wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
                         let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                         let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
@@ -348,9 +337,6 @@ pub async fn get_spot_bybit_positions(
                   history_assets.push_back(Value::from(asset_obj));
                       }
                     }
-                    
-                    
-                  }
 
                   
                   
@@ -358,10 +344,6 @@ pub async fn get_spot_bybit_positions(
               }
           }
               return history_assets.into();
-      } else {
-          error!("Can't get {} account.", name);
-          return history_assets.into();
-      }
 }
 
 
