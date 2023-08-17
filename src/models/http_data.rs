@@ -161,9 +161,28 @@ pub struct IsAccTra {
 pub struct AddShareList {
     pub r#type: String,
     pub token: String,
-    pub tra_id: String,
+    pub tra_id: u64,
     pub from_id: String,
-    pub to_id: String
+    pub to_id: String,
+    pub tra_name: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteShareAcc {
+    pub r#type: String,
+    pub token: String,
+    pub tra_id: u64,
+    pub to_id: String,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteShareAccGroup {
+    pub r#type: String,
+    pub token: String,
+    pub group_id: u64,
+    pub to_id: String,
 }
 
 

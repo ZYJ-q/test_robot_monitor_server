@@ -126,7 +126,8 @@ pub struct ShareList {
     pub sh_id: u64,
     pub from_id: String,
     pub to_id: String,
-    pub tra_id: String
+    pub tra_id: u64,
+    pub tra_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

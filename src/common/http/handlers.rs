@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, SelectTraders, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, SelectTraders, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -1149,7 +1149,91 @@ pub async fn add_shara_account_list(mut payload: web::Payload, db_pool: web::Dat
         }
     }
 
-    let data = database::add_share_list(db_pool.clone(), &obj.from_id, &obj.to_id, &obj.tra_id); 
+    let data = database::add_share_list(db_pool.clone(), &obj.from_id, &obj.to_id, &obj.tra_id, &obj.tra_name); 
+    match data {
+        true => {
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));
+        },
+        false => {
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
+        },
+    }
+}
+
+
+// 删除账户分享
+pub async fn del_shara_acc(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<DeleteShareAcc>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::delete_acc_share_list(db_pool.clone(), &obj.to_id, &obj.tra_id); 
+    match data {
+        true => {
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));
+        },
+        false => {
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
+        },
+    }
+}
+
+
+// 删除账户组分享
+pub async fn del_shara_acc_group(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<DeleteShareAccGroup>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::delete_acc_group_share_list(db_pool.clone(), &obj.to_id, &obj.group_id); 
     match data {
         true => {
             // println!("{:#?}", traders);

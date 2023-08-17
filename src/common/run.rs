@@ -111,6 +111,8 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/share_group_acc_tra").route(web::post().to(handlers::share_group_account_tra)))
             .service(web::resource("/add_share_list").route(web::post().to(handlers::add_shara_account_list)))
             .service(web::resource("/get_share_list").route(web::post().to(handlers::get_share_list)))
+            .service(web::resource("/del_acc_shara").route(web::post().to(handlers::del_shara_acc)))
+            .service(web::resource("/del_acc_group_shara").route(web::post().to(handlers::del_shara_acc_group)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

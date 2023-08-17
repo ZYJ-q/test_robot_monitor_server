@@ -1160,31 +1160,6 @@ pub fn get_detail_account_group_equity(
         
         match account_data {
             Ok(equitys) => {
-                // let data = "";
-                // println!("获取到的权益数据{}", equitys.len() / 4);
-                // let len = (equitys.len() + 5) / 4;
-                // for i in 0..len{
-                    
-                //     if i * 4 < equitys.len() {
-                //         let times = &equitys[i * 4].time;
-                //     let new_time = times.clone();
-                //     println!("数据{}", new_time);
-                //     let equitya = &equitys[i * 4].equity;
-                //     let new_equity = equitya.clone();
-                //     let status = &equitys[i * 4].r#type;
-                //     let new_status = status.clone();
-
-
-                //     re.push(GroupEquitysProRes {
-                //         name: equitys[i * 4].name,
-                //         time: new_time,
-                //         equity: new_equity,
-                //         r#type: new_status,
-                //     })
-
-                //     }
-                    
-                // }
 
                 let mut data: String = "".to_string();
                 let len = equitys.len();
@@ -1398,14 +1373,15 @@ pub fn share_account (pool: web::Data<Pool>, account_id: &u64, tra_id: &u64 ) ->
 }
 
 // 添加分享记录
-pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id: &str ) -> bool {
+pub fn add_share_list(pool: web::Data<Pool>, from_id: &str, to_id: &str, tra_id: &u64, tra_name: &str ) -> bool {
     let mut conn = pool.get_conn().unwrap();
         let res = conn.exec_drop(
-            r"insert into share_accounts (from_id, to_id, tra_id) values (:from_id, :to_id, :tra_id)",
+            r"insert into share_accounts (from_id, to_id, tra_id, tra_name) values (:from_id, :to_id, :tra_id, :tra_name)",
             params! {
                 "from_id" => from_id,
                 "to_id" => to_id,
-                "tra_id" => tra_id
+                "tra_id" => tra_id,
+                "tra_name" => tra_name,
             },
         );
 
@@ -1431,40 +1407,93 @@ pub fn get_account_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<V
             from_id,
             to_id,
             tra_id,
-
+            tra_name,
         )| ShareList {
             sh_id,
             from_id,
             to_id,
             tra_id,
+            tra_name
         }
     ).unwrap();
         
     return Ok(res);
 }
 
-// // 删除分享记录
-// pub fn delete_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<Vec<ShareList>> {
-//     let mut conn = pool.get_conn().unwrap();
-//     let value = &format!("select * from share_accounts where from_id = {}", from_id.to_string());
-//     let res = conn.query_map(
-//         value, 
-//         |(
-//             sh_id,
-//             from_id,
-//             to_id,
-//             tra_id,
+// 删除账户分享记录
+pub fn delete_acc_share_list(pool: web::Data<Pool>, to_id: &str, tra_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select acc_id from accounts where acc_name = :acc_name",
+        params! {
+            "acc_name" => to_id
+        },
+    );
+    match res {
+        Ok(acc_ids) => {
+            for acc_id in acc_ids {
+                let account = conn.exec_drop(
+                    r"delete from acc_tra where tra_id = :tra_id and acc_id = :acc_id", 
+                    params! {
+                        "tra_id" => tra_id,
+                        "acc_id" => acc_id
+                    }
+                );
+                match account {
+                    Ok(()) => {
+                        continue;
+    
+                    }
+                    Err(e) => {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
 
-//         )| ShareList {
-//             sh_id,
-//             from_id,
-//             to_id,
-//             tra_id,
-//         }
-//     ).unwrap();
-        
-//     return Ok(res);
-// }
+
+// 删除账户组分享记录
+pub fn delete_acc_group_share_list(pool: web::Data<Pool>, to_id: &str, group_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select acc_id from accounts where acc_name = :acc_name",
+        params! {
+            "acc_name" => to_id
+        },
+    );
+    match res {
+        Ok(acc_ids) => {
+            for acc_id in acc_ids {
+                let account = conn.exec_drop(
+                    r"delete from acc_group where group_id = :group_id and acc_id = :acc_id", 
+                    params! {
+                        "group_id" => group_id,
+                        "acc_id" => acc_id
+                    }
+                );
+                match account {
+                    Ok(()) => {
+                        continue;
+    
+                    }
+                    Err(e) => {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
 
 
 // 分享给那个用户，给那个用户添加账户组权限
