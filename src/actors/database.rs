@@ -1351,25 +1351,43 @@ pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u
 
 
 // 分享给那个用户，给那个用户添加账户权限
-pub fn share_account (pool: web::Data<Pool>, account_id: &u64, tra_id: &u64 ) -> bool {
+pub fn share_account (pool: web::Data<Pool>, account_id: &str, tra_id: &u64 ) -> bool {
     let mut conn = pool.get_conn().unwrap();
-        let res = conn.exec_drop(
-            r"insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)",
-            params! {
-                "is_show" => "true",
-                "tra_id" => tra_id,
-                "acc_id" => account_id
-            },
-        );
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select acc_id from accounts where acc_name = :acc_name",
+        params! {
+            "acc_name" => account_id
+        },
+    );
 
-        match res {
-            Ok(()) => {
-                return true;
+    match res {
+        Ok(acc_ids) => {
+            for acc_id in acc_ids {
+                let account = conn.exec_drop(
+                    r"insert into acc_tra (acc_id, tra_id) values (:acc_id, :tra_id)",
+                    params! {
+                        "acc_id" => acc_id,
+                        "tra_id" => tra_id
+                    },
+                );
+
+                match account {
+                    Ok(()) => {
+                        continue;
+                    }
+                    Err(e) => {
+                        return false;
+                    }
+                }
+
             }
-            Err(e) => {
-                return false;
-            }
+            return true;
         }
+        Err(e) => {
+            return false;
+        }
+        
+    }
 }
 
 // 添加分享记录
@@ -1518,24 +1536,46 @@ pub fn delete_acc_group_share_list(pool: web::Data<Pool>, to_id: &str, group_id:
 
 
 // 分享给那个用户，给那个用户添加账户组权限
-pub fn share_group_account (pool: web::Data<Pool>, account_id: &u64, group_id: &u64 ) -> bool {
+pub fn share_group_account (pool: web::Data<Pool>, account_id: &str, group_id: &u64 ) -> bool {
     let mut conn = pool.get_conn().unwrap();
-        let res = conn.exec_drop(
-            r"insert into acc_group (acc_id, group_id) values (:acc_id, :group_id)",
-            params! {
-                "acc_id" => account_id,
-                "group_id" => group_id
-            },
-        );
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select acc_id from accounts where acc_name = :acc_name",
+        params! {
+            "acc_name" => account_id
+        },
+    );
 
-        match res {
-            Ok(()) => {
-                return true;
+    match res {
+        Ok(acc_ids) => {
+            for acc_id in acc_ids {
+                let account = conn.exec_drop(
+                    r"insert into acc_group (acc_id, group_id) values (:acc_id, :group_id)",
+                    params! {
+                        "acc_id" => acc_id,
+                        "group_id" => group_id
+                    },
+                );
+
+                match account {
+                    Ok(()) => {
+                        continue;
+                    }
+                    Err(e) => {
+                        return false;
+                    }
+                }
+
             }
-            Err(e) => {
-                return false;
-            }
+            return true;
         }
+        Err(e) => {
+            return false;
+        }
+        
+    }
+        
+
+        
 }
 
 // 分享模块，添加用户组找到里面的tra_id,并添加到 acc_tra 数据库中
