@@ -1421,6 +1421,26 @@ pub fn get_account_share_list(pool: web::Data<Pool>, from_id: &str ) -> Result<V
     return Ok(res);
 }
 
+
+// 删除分享记录
+pub fn delete_share_list(pool: web::Data<Pool>, sh_id: &u64 ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let account = conn.exec_drop(
+        r"delete from share_accounts where sh_id = :sh_id", 
+        params! {
+            "sh_id" => sh_id
+        }
+    );
+    
+    match account {
+        Ok(acc_ids) => {
+            return true;
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
 // 删除账户分享记录
 pub fn delete_acc_share_list(pool: web::Data<Pool>, to_id: &str, tra_id: &u64 ) -> bool {
     let mut conn = pool.get_conn().unwrap();

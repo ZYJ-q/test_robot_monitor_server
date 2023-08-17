@@ -176,6 +176,13 @@ pub struct DeleteShareAcc {
     pub to_id: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteShareList {
+    pub r#type: String,
+    pub token: String,
+    pub sh_id: u64,
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteShareAccGroup {
