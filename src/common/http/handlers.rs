@@ -1100,7 +1100,7 @@ pub async fn share_group_account_tra(mut payload: web::Payload, db_pool: web::Da
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<IsAccGroup>(&body)?;
+    let obj = serde_json::from_slice::<AccGroupShare>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}

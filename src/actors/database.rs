@@ -1579,7 +1579,7 @@ pub fn share_group_account (pool: web::Data<Pool>, account_id: &str, group_id: &
 }
 
 // 分享模块，添加用户组找到里面的tra_id,并添加到 acc_tra 数据库中
-pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id: &u64 ) -> bool {
+pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &str, group_id: &u64 ) -> bool {
     let mut conn = pool.get_conn().unwrap();
         let res: Result<Vec<u64>> = conn.exec(
             r"select tra_id from group_tra where group_id = :group_id",
@@ -1592,24 +1592,41 @@ pub fn share_group_account_tra (pool: web::Data<Pool>,account_id: &u64, group_id
             Ok(tra_ids) => {
                 println!("tra_ids{:?}", tra_ids);
                 for tra_id in tra_ids {
-                    let tra = conn.exec_drop(
-                        "insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)", 
+                    let account:Result<Vec<u64>> = conn.exec(
+                        r"select acc_id from accounts where acc_name = :acc_name",
                         params! {
-                            "acc_id" => account_id,
-                            "tra_id" => tra_id,
-                            "is_show" => "false"
+                            "acc_name" => account_id
                         }
                     );
-
-                    match tra {
-                        Ok(()) => {
-                            continue;
+                    match account {
+                        Ok(acc_ids) => {
+                            for acc_id in acc_ids {
+                                let tra = conn.exec_drop(
+                                    "insert into acc_tra (acc_id, tra_id, is_show) values (:acc_id, :tra_id, :is_show)", 
+                                    params! {
+                                        "acc_id" => acc_id,
+                                        "tra_id" => tra_id,
+                                        "is_show" => "false"
+                                    }
+                                );
+            
+                                match tra {
+                                    Ok(()) => {
+                                        continue;
+                                    }
+                                    Err(_e) => {
+                                        return false;
+                                    }
+                                    
+                                }
+                            }
                         }
-                        Err(_e) => {
+                        Err(e) => {
                             return false;
                         }
                         
                     }
+                    
                 }
                 return true;
             }
