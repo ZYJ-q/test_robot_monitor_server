@@ -304,7 +304,7 @@ pub async fn get_spot_bybit_positions(
               } else {
                   let symbol = objs.get("coin").unwrap().as_str().unwrap();
                   let symbols = format!("{}USDT-SPOT", symbol);
-                      if symbol != "USDC" || symbol != "USDT"{
+                      if symbol != "USDC" && symbol != "USDT"{
                         wallet_balance= objs.get("walletBalance").unwrap().as_str().unwrap();
                         let wallet_balances: f64 = objs.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
                         let unrealized_profit = objs.get("unrealisedPnl").unwrap().as_str().unwrap(); 
