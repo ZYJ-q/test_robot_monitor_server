@@ -3375,6 +3375,27 @@ pub fn update_positions(pool: web::Data<Pool>, name:&str, threshold:&str) -> Res
     }
 }
 
+
+// 更新权益监控和权益监控中的阈值
+pub fn update_equitys(pool: web::Data<Pool>, name:&str, equitys:&str) -> Result<()> {
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn.exec_drop(
+        r"update trader set wx_hook = :wx_hook where tra_id = :tra_id",
+        params! {
+            "tra_id" => name,
+            "wx_hook" => equitys
+        },
+    );
+    match res {
+        Ok(()) => {
+            return Ok(());
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
+
 // 设置账户的份额
 pub fn update_ori_balance(pool: web::Data<Pool>, tra_id:&str, ori_balance:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();

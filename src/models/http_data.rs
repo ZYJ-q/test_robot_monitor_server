@@ -410,6 +410,14 @@ pub struct UpdatePositions{
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateEquitys{
+    pub r#type: String,
+    pub token: String,
+    pub name: String,
+    pub equitys: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateAlarms{
     pub r#type: String,
     pub token: String,
