@@ -570,6 +570,30 @@ pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str,
     };
 }
 
+pub fn check_trader(pool: web::Data<Pool>, api_key: &str, secret_key: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from trader where api_key = :api_key and secret_key = :secret_key", 
+        params! {
+            "api_key" => api_key,
+            "secret_key" => secret_key,
+        },
+    );
+
+    match res {
+        Ok(trads) => {
+            if trads.len() == 0 {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        Err(_) => {
+            return false;
+        }  
+    }
+}
+
 
 pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str, name: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();

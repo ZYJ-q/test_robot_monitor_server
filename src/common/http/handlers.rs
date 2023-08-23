@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -398,7 +398,10 @@ pub async fn insert_trader(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("插入失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }
@@ -438,7 +441,50 @@ pub async fn insert_account(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("插入失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
+        },
+    }
+}
+
+pub async fn check_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<CheckAccounts>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::check_trader(db_pool.clone(), &obj.api_key, &obj.secret_key); 
+    match data {
+        true => {
+            // println!("{:#?}", traders);
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));
+        },
+        false => {
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }
@@ -578,7 +624,10 @@ pub async fn insert_weixins(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("插入失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }

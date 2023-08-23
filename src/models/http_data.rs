@@ -123,6 +123,14 @@ pub struct SelectAccounts {
     pub token: String
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CheckAccounts {
+    pub api_key: String,
+    pub secret_key: String,
+    pub r#type: String,
+    pub token: String
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SelectWeixin {
