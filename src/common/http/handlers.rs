@@ -398,7 +398,7 @@ pub async fn insert_trader(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -441,7 +441,7 @@ pub async fn insert_account(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -481,7 +481,7 @@ pub async fn check_account(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -515,7 +515,7 @@ pub async fn insert_accounts(mut payload: web::Payload, db_pool: web::Data<Pool>
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -627,7 +627,7 @@ pub async fn insert_weixins(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1050,7 +1050,7 @@ pub async fn is_account_group(mut payload: web::Payload, db_pool: web::Data<Pool
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1090,7 +1090,7 @@ pub async fn share_account(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1131,7 +1131,7 @@ pub async fn share_group_account(mut payload: web::Payload, db_pool: web::Data<P
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1171,7 +1171,7 @@ pub async fn share_group_account_tra(mut payload: web::Payload, db_pool: web::Da
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1211,7 +1211,7 @@ pub async fn add_shara_account_list(mut payload: web::Payload, db_pool: web::Dat
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1253,7 +1253,7 @@ pub async fn del_shara_acc(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1295,7 +1295,7 @@ pub async fn del_shara_list(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1337,7 +1337,7 @@ pub async fn del_shara_acc_group(mut payload: web::Payload, db_pool: web::Data<P
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -1416,7 +1416,7 @@ pub async fn is_account_tra(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));
         },
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2271,7 +2271,7 @@ pub async fn add_wx_trader_notices(mut payload: web::Payload, db_pool: web::Data
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2352,7 +2352,7 @@ pub async fn add_slack_trader_notices(mut payload: web::Payload, db_pool: web::D
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2394,7 +2394,7 @@ pub async fn delete_slack_trader_notices(mut payload: web::Payload, db_pool: web
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2435,7 +2435,7 @@ pub async fn add_account_group(mut payload: web::Payload, db_pool: web::Data<Poo
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2477,7 +2477,7 @@ pub async fn add_group_tra(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2519,7 +2519,7 @@ pub async fn delete_acc_tra(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2561,7 +2561,7 @@ pub async fn add_acc_group(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
@@ -2832,7 +2832,7 @@ pub async fn delete_wx_trader_notices(mut payload: web::Payload, db_pool: web::D
             }));    
         }
         false => {
-            return Err(HttpResponse::ExpectationFailed().json(Response {
+            return Ok(HttpResponse::ExpectationFailed().json(Response {
                 status: 404,
                 data,
             }).into());
