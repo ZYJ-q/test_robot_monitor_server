@@ -515,7 +515,10 @@ pub async fn insert_accounts(mut payload: web::Payload, db_pool: web::Data<Pool>
             }));
         },
         false => {
-            return Err(error::ErrorNotFound("插入失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         },
     }
 }
@@ -2268,7 +2271,10 @@ pub async fn add_wx_trader_notices(mut payload: web::Payload, db_pool: web::Data
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("添加失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2346,7 +2352,10 @@ pub async fn add_slack_trader_notices(mut payload: web::Payload, db_pool: web::D
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("添加失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2385,7 +2394,10 @@ pub async fn delete_slack_trader_notices(mut payload: web::Payload, db_pool: web
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("删除失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2423,7 +2435,10 @@ pub async fn add_account_group(mut payload: web::Payload, db_pool: web::Data<Poo
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("添加失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2462,7 +2477,10 @@ pub async fn add_group_tra(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("添加失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2501,7 +2519,10 @@ pub async fn delete_acc_tra(mut payload: web::Payload, db_pool: web::Data<Pool>)
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("删除失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2540,7 +2561,10 @@ pub async fn add_acc_group(mut payload: web::Payload, db_pool: web::Data<Pool>) 
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("添加失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -2808,7 +2832,10 @@ pub async fn delete_wx_trader_notices(mut payload: web::Payload, db_pool: web::D
             }));    
         }
         false => {
-            return Err(error::ErrorNotFound("删除失败"));
+            return Err(HttpResponse::ExpectationFailed().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
