@@ -3396,6 +3396,9 @@ pub fn update_equitys(pool: web::Data<Pool>, name:&str, equitys:&str) -> Result<
     }
 }
 
+
+
+
 // 设置账户的份额
 pub fn update_ori_balance(pool: web::Data<Pool>, tra_id:&str, ori_balance:&str) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
