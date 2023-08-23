@@ -568,7 +568,7 @@ pub async fn insert_weixins(mut payload: web::Payload, db_pool: web::Data<Pool>)
         }
     }
 
-    let data = database::insert_weixins(db_pool.clone(), &obj.wx_name, &obj.wx_hook); 
+    let data = database::insert_weixins(db_pool.clone(), &obj.wx_name, &obj.wx_hook, &obj.name); 
     match data {
         true => {
             // println!("{:#?}", traders);

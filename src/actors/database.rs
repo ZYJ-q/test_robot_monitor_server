@@ -571,23 +571,45 @@ pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str,
 }
 
 
-pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str) -> bool {
+pub fn insert_weixins(pool: web::Data<Pool>, wx_name: &str, wx_hook: &str, name: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let res = conn.exec_drop(
-        r"insert into weixins (wx_name, wx_hook) values (:wx_name, :wx_hook)",
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from trader where name = :name", 
         params! {
-            "wx_name" => wx_name,
-            "wx_hook" => wx_hook
-        },
+            "name" => name,
+        }
     );
     match res {
-        Ok(c) => {
+        Ok(resq) => {
+            for tra_id in resq {
+                let tra = conn.exec_drop(
+                    r"insert into notices (tra_id, wx_hook, wx_name, slack_hook, slack_name, mess_hook, mess_name) values (:tra_id, :wx_hook, :wx_name, :slack_hook, :slack_name, :mess_hook, :mess_name)",
+                    params! {
+                        "tra_id" => tra_id,
+                        "wx_hook" => wx_hook,
+                        "wx_name" => wx_name,
+                        "slack_hook" => "",
+                        "slack_name" => "",
+                        "mess_hook" => "",
+                        "mess_name" => ""
+                    },
+                );
+                match tra {
+                    Ok(_trader) => {
+                        continue;
+                                                
+                    },
+                    Err(_e) => {
+                        continue;
+                    }
+                };
+            }
             return true;
         },
-        Err(e) => {
+        Err(_) => {
             return false;
         }
-    };
+    }
 }
 
 

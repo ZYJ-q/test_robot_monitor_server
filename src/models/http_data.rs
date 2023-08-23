@@ -129,7 +129,8 @@ pub struct SelectWeixin {
     pub wx_name: String,
     pub wx_hook: String,
     pub r#type: String,
-    pub token: String
+    pub token: String,
+    pub name: String,
 }
 
 
