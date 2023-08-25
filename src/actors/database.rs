@@ -656,7 +656,7 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
                 let mut conn = pool.get_conn().unwrap();
                 let prod = conn
                     .exec_first(
-                        r"select * from trader_message where tra_id = :tra_id order by id desc limit 1",
+                        r"select * from copy_trader_mess where tra_id = :tra_id order by id desc limit 1",
                         params! {
                             "tra_id" => tra_id
                         },
@@ -2188,7 +2188,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
     let mut conn = pool.get_conn().unwrap();
     let res = conn
     .exec_first(
-        r"select * from trader_message where tra_id = :tra_id order by id desc limit 1",
+        r"select * from copy_trader_mess where tra_id = :tra_id order by id desc limit 1",
         params! {
             "tra_id" => tra_id
         },
