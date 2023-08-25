@@ -967,7 +967,6 @@ pub async fn single_bian_account(mut payload: web::Payload, db_pool: web::Data<P
     match database::get_one_traders(db_pool.clone(), &obj.tra_id) {
         Ok(traders) => {
             let acct_re = actions::get_single_account(traders).await;
-            let da = database::insert_trader_mess(db_pool.clone(), acct_re.clone());
             return Ok(HttpResponse::Ok().json(Response {
                 status: 200,
                 data: acct_re,
