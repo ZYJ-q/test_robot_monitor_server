@@ -9,7 +9,7 @@ use mysql::*;
 
 // use super::AlarmUnit;
 use super::db_data::{Account, Active, AccountData, Product, Trader, ShareList, GroupTra, NewTrade, GroupEquity, TraderMessage, AccountGroup, BybitNewTrade, ClearData, NoticesData, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
-use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes, GroupEquitysProRes};
+use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes, AccountRe, GroupEquitysProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
     let user = config_db.get("user").unwrap();
@@ -1579,6 +1579,42 @@ pub fn delete_acc_group_share_list(pool: web::Data<Pool>, to_id: &str, group_id:
             return false;
         }
     }
+}
+
+
+pub fn insert_trader_mess (pool: web::Data<Pool>, trader_mes: AccountRe ) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    for mess in trader_mes.subs {
+        println!("穿过来的参数id:{:?}, name:{:?}, equity:{:?}, leverage:{:?}, position:{:?}, open_order_amt:{:?}, avaliable_balance:{:?}, tra_venue:{:?}, type:{:?}, total_balance:{:?}", mess.id, mess.name, mess.total_equity, mess.leverage, mess.position, mess.open_order_amt, mess.available_balance, mess.tra_venue, mess.r#type, mess.total_balance);
+        let account = conn.exec_drop(
+            r"insert into trader_message (tra_id, name, equity, leverage, position, open_order_amt, avaliable_balance, tra_venue, type, total_balance) values (:tra_id, :name, :equity, :leverage, :position, :open_order_amt, :avaliable_balance, :tra_venue, :type, :total_balance)",
+            params! {
+                "tra_id" => mess.id,
+                "name" => mess.name,
+                "equity" => mess.total_equity,
+                "leverage" => mess.leverage,
+                "position" => mess.position,
+                "open_order_amt" => mess.open_order_amt,
+                "avaliable_balance" => mess.available_balance,
+                "tra_venue" => mess.tra_venue,
+                "type" => mess.r#type,
+                "total_balance" => mess.total_balance
+            },
+        );
+    
+        match account {
+            Ok(()) => {
+                continue;
+            }
+            Err(e) => {
+                return false;
+            }
+        }
+    }
+
+    return true;
+
+
 }
 
 

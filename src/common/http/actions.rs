@@ -323,14 +323,6 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
         }
     }
     data.subs = subs;
-    // data.total.time = date;
-    // data.total.equity_eth = equities_eth.to_string();
-    // data.total.net_worth = (equities / origins).to_string();
-    // data.total.net_worth_eth = (equities_eth / origins).to_string();
-    // data.total.equity = equities.to_string();
-    // data.total.day_pnl = day_pnls.to_string();
-    // data.total.week_pnl = week_pnls.to_string();
-    // 发送信息
     return data;
 }
 

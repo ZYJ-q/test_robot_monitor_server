@@ -37,7 +37,11 @@ pub async fn get_account_sub(
 
 
             if wallet_balance != 0.00 {
-                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" || symbol != "BUSD" {
+                if symbol == "USDT" || symbol == "USDC" || symbol == "BUSD" || symbol == "USDP"  {
+                    println!("u本位的金额{}", margin_balance);
+                    total_margin_balance += margin_balance;
+                    println!("加完之后的金额{}", total_margin_balance);
+                } else {
                     let asset = format!("{}USDT", symbol);
                     if let Some(data) = http_api.get_klines(&asset).await {
                         let v: Value = serde_json::from_str(&data).unwrap();
@@ -47,11 +51,7 @@ pub async fn get_account_sub(
                         println!("不是u本位的金额{}", new_margin_balance);
                         total_margin_balance += new_margin_balance;
                     }
-                } 
-                if symbol == "USDT" || symbol == "USDC" || symbol == "BUSD" {
-                    println!("u本位的金额{}", margin_balance);
-                    total_margin_balance += margin_balance;
-                    println!("加完之后的金额{}", total_margin_balance);
+                    
                 }
             }
             
@@ -74,10 +74,7 @@ pub async fn get_account_sub(
                 new_total_equity += pnl;
             }
         }
-        // 余额
-        let total_wallet_balance: f64 = ((new_total_balance / best_price) - 28.97086) * best_price;
-        // 权益
-        let new_total_equity_eth: f64 = ((new_total_equity / best_price) - 28.97086) * best_price;
+        
         // let net_worth = new_total_equity / origin_balance;
         
         // let total_balance: f64 = value
@@ -99,30 +96,6 @@ pub async fn get_account_sub(
             .unwrap()
             .parse()
             .unwrap();
-        // let total_equity = total_balance + total_pnl; // 权益 = 余额 + 未实现盈亏
-        
-        // let total_margin: f64 = value
-        //     .as_object()
-        //     .unwrap()
-        //     .get("totalMarginBalance")
-        //     .unwrap()
-        //     .as_str()
-        //     .unwrap()
-        //     .parse()
-        //     .unwrap();
-        // let total_marign_eth: f64 = total_margin / best_price;
-        // let available_margin: f64 = value
-        //     .as_object()
-        //     .unwrap()
-        //     .get("totalMaintMargin")
-        //     .unwrap()
-        //     .as_str()
-        //     .unwrap()
-        //     .parse()
-        //     .unwrap();
-        // let available_margin_eth: f64 = available_margin / best_price;
-        // let locked_margin = total_margin - available_margin;
-        // let locked_margin_eth: f64 = locked_margin / best_price;
         let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
         // let mut position: f64 = 0.0;
         let mut amts: f64 = 0.0;
@@ -154,14 +127,10 @@ pub async fn get_account_sub(
             }
 
         }
-        // let position = amts * prices;
-
-        println!("账户本金{}, 名字{}", total_margin_balance, name);
 
 
         let leverage = amts.abs() / total_margin_balance; // 杠杆率 = 仓位价值 / 本金（账户总金额 + 未实现盈亏）
-        // println!("当前杠杆率{}", leverage);
-        let leverage_eth = amts.abs()/ total_wallet_balance;
+       
 
         if let Some(data) = http_api.get_open_orders("none").await {
             let value: Value = serde_json::from_str(&data).unwrap();
@@ -173,20 +142,14 @@ pub async fn get_account_sub(
             return Some(Sub {
                 id: String::from(id.to_string()),
                 name: String::from(name),
-                total_balance_u:format!("{}", new_total_balance),
-                total_balance: format!("{}", total_wallet_balance),
+                total_balance: format!("{}", total_margin_balance),
                 total_equity: format!("{}", new_total_equity),
-                total_equity_eth: format!("{}", new_total_equity_eth),
                 leverage: format!("{}", leverage),
-                leverage_eth: format!("{}", leverage_eth),
                 position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
-                net_worth: format!("{}", ""),
-                // day_transaction_price: format!("{}", day_transaction_price),
-                // week_transaction_price: format!("{}", week_transaction_price),
-                // day_pnl: format!("{}", day_pnl ),
-                // week_pnl: format!("{}", week_pnl ),
-                available_balance: format!("{}", available_balance),
+                available_balance: format!("{}", new_total_balance),
+                tra_venue: format!("Binance"),
+                r#type: format!("Futures"),
             });
         } else {
             error!("Can't get {} openOrders.", name);

@@ -941,6 +941,44 @@ pub async fn single_bybit_account(mut payload: web::Payload, db_pool: web::Data<
     }
 }
 
+
+pub async fn single_bian_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<SelectAccount>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    match database::get_one_traders(db_pool.clone(), &obj.tra_id) {
+        Ok(traders) => {
+            let acct_re = actions::get_single_account(traders).await;
+            let da = database::insert_trader_mess(db_pool.clone(), acct_re.clone());
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: acct_re,
+            }));
+        }
+        Err(e) => {
+            return Err(error::ErrorInternalServerError(e));
+        }
+    }
+}
+
 // 获取所有账户列表（显示为机器人列表）
 pub async fn get_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
