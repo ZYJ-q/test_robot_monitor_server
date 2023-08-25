@@ -5,7 +5,7 @@ use serde_json::{Map,Value};
 use std::collections::VecDeque;
 use std::fs;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use super::http_data::ByBitSub;
+use super::http_data::Sub;
 use super::base::venue_api::HttpVenueApi;
 
 pub async fn get_account_bybit(
@@ -14,7 +14,7 @@ pub async fn get_account_bybit(
   id: &u64,
   borrow_currency: &str,
   alarm: &str,
-) -> Option<ByBitSub> {
+) -> Option<Sub> {
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
       let mut spot_position = 0.0;
@@ -134,29 +134,33 @@ pub async fn get_account_bybit(
 
 
 
-                return Some(ByBitSub {
+                return Some(Sub {
                   id: String::from(id.to_string()),
                   name: String::from(name),
                   total_equity: format!("{}", equity),
+                  total_balance: format!("{}", equity),
                   leverage: format!("{}", leverage),
                   position: format!("{}", amts),
                   open_order_amt: format!("{}", new_open_orders),
-                  net_worth: format!("{}", ""),
                   available_balance: format!("{}", wallet_balance),
+                  tra_venue: format!("ByBit"),
+                  r#type: format!("Futures")
               });
 
               } else {
 
                 error!("Can't get {} usdcopenOrders.", open_orders);
-              return Some(ByBitSub {
+              return Some(Sub {
                 id: String::from(id.to_string()),
-                name: String::from(name),
-                total_equity: format!("{}", equity),
-                leverage: format!("{}", leverage),
-                position: format!("{}", amts),
-                open_order_amt: format!("{}", open_orders),
-                net_worth: format!("{}", ""),
-                available_balance: format!("{}", wallet_balance),
+                  name: String::from(name),
+                  total_equity: format!("{}", equity),
+                  total_balance: format!("{}", equity),
+                  leverage: format!("{}", leverage),
+                  position: format!("{}", amts),
+                  open_order_amt: format!("{}", open_orders),
+                  available_balance: format!("{}", wallet_balance),
+                  tra_venue: format!("ByBit"),
+                  r#type: format!("Futures")
             });
                   
               }
@@ -164,41 +168,47 @@ pub async fn get_account_bybit(
               
           } else {
               error!("Can't get {} openOrders.", name);
-              return Some(ByBitSub {
+              return Some(Sub {
                 id: String::from(id.to_string()),
-                name: String::from(name),
-                total_equity: format!("{}", equity),
-                leverage: format!("{}", leverage),
-                position: format!("{}", amts),
-                open_order_amt: format!("{}", open_order),
-                net_worth: format!("{}", ""),
-                available_balance: format!("{}", wallet_balance),
+                  name: String::from(name),
+                  total_equity: format!("{}", equity),
+                  total_balance: format!("{}", equity),
+                  leverage: format!("{}", leverage),
+                  position: format!("{}", amts),
+                  open_order_amt: format!("{}", open_order),
+                  available_balance: format!("{}", wallet_balance),
+                  tra_venue: format!("ByBit"),
+                  r#type: format!("Futures")
             });      
           }
       } else {
           error!("Can't get {} openOrders.", name);
-          return Some(ByBitSub {
+          return Some(Sub {
             id: String::from(id.to_string()),
-            name: String::from(name),
-            total_equity: format!("{}", equity),
-            leverage: format!("{}", leverage),
-            position: format!("{}", amts),
-            open_order_amt: format!("{}", 0),
-            net_worth: format!("{}",""),
-            available_balance: format!("{}", wallet_balance),
+                  name: String::from(name),
+                  total_equity: format!("{}", equity),
+                  total_balance: format!("{}", equity),
+                  leverage: format!("{}", leverage),
+                  position: format!("{}", amts),
+                  open_order_amt: format!("{}", 0),
+                  available_balance: format!("{}", wallet_balance),
+                  tra_venue: format!("ByBit"),
+                  r#type: format!("Futures")
         });   
       }
     } else {
         error!("Can't get {} position.", name);
-        return Some(ByBitSub {
+        return Some(Sub {
           id: String::from(id.to_string()),
-          name: String::from(name),
-          total_equity: format!("{}", equity),
-          leverage: format!("{}", 0),
-          position: format!("{}", 0),
-          open_order_amt: format!("{}", 0),
-          net_worth: format!("{}", ""),
-          available_balance: format!("{}", wallet_balance),
+                  name: String::from(name),
+                  total_equity: format!("{}", equity),
+                  total_balance: format!("{}", equity),
+                  leverage: format!("{}", 0),
+                  position: format!("{}", 0),
+                  open_order_amt: format!("{}", 0),
+                  available_balance: format!("{}", wallet_balance),
+                  tra_venue: format!("ByBit"),
+                  r#type: format!("Futures")
       });
         
     }

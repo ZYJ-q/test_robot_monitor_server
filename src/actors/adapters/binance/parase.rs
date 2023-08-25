@@ -424,11 +424,12 @@ pub async fn get_klines_price(
 // 账户信息
 pub async fn get_papi_account_sub(
     http_api: &Box<dyn HttpVenueApi>,
+    http_future_api: &Box<dyn HttpVenueApi>,
     name: &str,
     id: &u64,
     borrow_currency: &str,
     alarm: &str,
-) -> Option<PapiSub> {
+) -> Option<Sub> {
 
     if let Some (data) = http_api.account().await{
         let value: Value = serde_json::from_str(&data).unwrap();
@@ -439,6 +440,9 @@ pub async fn get_papi_account_sub(
             let value: Value = serde_json::from_str(&data).unwrap();
             let assets = value.as_array().unwrap();
             let mut equity = 0.0;
+            let mut total_margin_balance= 0.0;
+            let mut borrow_balance = 0.0;
+
 
         for p in assets {
             let obj = p.as_object().unwrap();
@@ -450,6 +454,7 @@ pub async fn get_papi_account_sub(
                 let borrows: Vec<&str> = borrow_currency.split('-').collect();
                 println!("处理之后的借贷币种{}", borrows[0]);
                 if symbol == borrows[0] {
+                    borrow_balance = amt;
                     continue;
                 } else {
                     let unrealied_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
@@ -457,6 +462,15 @@ pub async fn get_papi_account_sub(
                     let unrealied = unrealied_cm + unrealied_um;
                     let total_equity = unrealied + amt;
                     equity += total_equity;
+                    let symbols = format!("{}USDT", borrows[0]);
+
+                    if let Some(data) = http_future_api.get_klines(&symbols).await {
+                        let v: Value = serde_json::from_str(&data).unwrap();
+                        let price_obj = v.as_object().unwrap();
+                        let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
+                        let new_balance = borrow_balance * price;
+                        total_margin_balance += new_balance;
+                    }
                 }
             } 
         }
@@ -486,8 +500,16 @@ pub async fn get_papi_account_sub(
                 
             let symbol = obj.get("symbol").unwrap().as_str().unwrap();
             new_symbol= &symbol[0..symbol.len()-4];
-            // println!("symbols: {},symbol: {}", symbols, symbol);
-            amts += position_amt;
+            let sbol = format!("{}USDT", new_symbol);
+            if let Some(data) = http_future_api.get_klines(&sbol).await {
+                let v: Value = serde_json::from_str(&data).unwrap();
+                let price_obj = v.as_object().unwrap();
+
+                let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
+                let new_amt = position_amt * price;
+                amts += new_amt;
+                // prices = price;
+            }
             }
 
         }
@@ -496,7 +518,7 @@ pub async fn get_papi_account_sub(
         // println!("账户本金{}, 名字{}", equity, name);
 
 
-        // let leverage = amts.abs() / equity; // 杠杆率 = 仓位价值 / 本金
+        let leverage = amts.abs() / (total_margin_balance + equity); // 杠杆率 = 仓位价值 / 本金
 
             
 
@@ -513,15 +535,18 @@ pub async fn get_papi_account_sub(
 
             // println!("当前挂单数量:{}, name:{}", open_order, name);
 
-            return Some(PapiSub {
+            return Some(Sub {
                 id: String::from(id.to_string()),
                 name: String::from(name),
+                total_balance: format!("{}", total_margin_balance + equity),
                 total_equity: format!("{}", equity),
-                leverage: format!("{}", 2),
+                leverage: format!("{}", leverage),
                 position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
                 available_balance: format!("{}", total_available_balance),
-                symbol:format!("{}USDT", new_symbol)
+                tra_venue: format!("Binance"),
+                r#type: format!("Papi"),
+                
             });
         } else {
             error!("Can't get {} openOrders.", name);

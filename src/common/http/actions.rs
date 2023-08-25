@@ -82,9 +82,11 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
 
 
 #[warn(dead_code, unused_variables, unused_mut)]
-pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountPapiRe {
+pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
+
+    let mut name_future_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
     // println!("traders{:?}", traders);
 
@@ -109,14 +111,35 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
 
 
 
+    for (key, value) in &traders {
+        match value.tra_venue.as_str() {
+            "Binance" => match value.r#type.as_str() {
+                "Papi" => {
+                    name_future_api.insert(
+                        String::from(key),
+                        Box::new(BinanceFuturesApi::new(
+                            "https://fapi.binance.com",
+                            &value.api_key,
+                            &value.secret_key,
+                        )),
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+
+
 
 
 
     // 预备数据
-    let mut data: http_data::AccountPapiRe = http_data::AccountPapiRe::new();
+    let mut data: http_data::AccountRe = http_data::AccountRe::new();
 
     // 合成account数据
-    let mut subs: Vec<http_data::PapiSub> = Vec::new();
+    let mut subs: Vec<http_data::Sub> = Vec::new();
 
 
     for (key, value) in &name_api {
@@ -127,7 +150,8 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
 
         
         
-        let res = get_papi_account_sub(value, name, id, borrow_currency, &alarm).await;
+        for (keys, values) in &name_future_api {
+            let res = get_papi_account_sub(value, values, name, id, borrow_currency, &alarm).await;
         
         match res {
             Some(sub) => {
@@ -138,9 +162,10 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
                 continue;
             }
         }
+        }
         
     }
-    data.papi_subs = subs;
+    data.subs = subs;
     // data.total.time = date;
     // data.total.equity_eth = equities_eth.to_string();
     // data.total.net_worth = (equities / origins).to_string();
@@ -154,7 +179,7 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
 }
 
 #[warn(dead_code, unused_variables, unused_mut)]
-pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountByBitRe {
+pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
@@ -186,10 +211,10 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
 
 
     // 预备数据
-    let mut data: http_data::AccountByBitRe = http_data::AccountByBitRe::new();
+    let mut data: http_data::AccountRe = http_data::AccountRe::new();
 
     // 合成account数据
-    let mut subs: Vec<http_data::ByBitSub> = Vec::new();
+    let mut subs: Vec<http_data::Sub> = Vec::new();
 
 
     for (key, value) in &name_api {
@@ -214,7 +239,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
             }
         }
     }
-    data.bybit_subs = subs;
+    data.subs = subs;
     // data.total.time = date;
     // data.total.equity_eth = equities_eth.to_string();
     // data.total.net_worth = (equities / origins).to_string();

@@ -117,7 +117,6 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/update_equitys").route(web::post().to(handlers::update_equitys_data)))
             .service(web::resource("/check_account").route(web::post().to(handlers::check_account)))
             .service(web::resource("/update_bian_mess").route(web::post().to(handlers::single_bian_account)))
-            // .service(web::resource("/insert_mess").route(web::post().to(handlers::insert_trader_mess)))
     })
     .bind((ip.as_str(), 8081))?
     .run();
