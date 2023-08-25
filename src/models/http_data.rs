@@ -142,6 +142,24 @@ pub struct SelectWeixin {
 }
 
 
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SelectTraderMess {
+    pub token: String,
+    pub tra_id: u64,
+    pub name: String,
+    pub equity: String,
+    pub leverage: String,
+    pub position: String,
+    pub open_order_amt: String,
+    pub avaliable_balance: String,
+    pub tra_venue: String,
+    pub r#type: String,
+    pub total_balance: String,
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InsertAccounts {
     pub user_name: String,
