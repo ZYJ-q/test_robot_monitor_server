@@ -940,7 +940,7 @@ pub fn get_account_group_tra(
 
                     for tra_id in tra_data{
                         let account_data = conn.exec_first(
-                            r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
+                            r"select * from copy_trader_mess where tra_id = :tra_id order by id desc limit 1", 
                             params! {
                                 "tra_id" => tra_id.tra_id
                             }
@@ -1037,7 +1037,7 @@ pub fn get_detail_account_group_tra(
 
     for tra_id in tra_data{
         let account_data = conn.exec_first(
-        r"select * from trader_message where tra_id = :tra_id order by id desc limit 1", 
+        r"select * from copy_trader_mess where tra_id = :tra_id order by id desc limit 1", 
             params! {
                 "tra_id" => tra_id.tra_id
             }
@@ -1582,32 +1582,37 @@ pub fn delete_acc_group_share_list(pool: web::Data<Pool>, to_id: &str, group_id:
 }
 
 
-pub fn insert_trader_mess (pool: web::Data<Pool>, tra_id: &u64, name: &str, equity: &str, leverage: &str, position: &str, open_order_amt: &str, avaliable_balance: &str, tra_venue: &str, r#type: &str, total_balance: &str   ) -> bool {
+pub fn insert_trader_mess (pool: web::Data<Pool>, trader_mes: AccountRe ) -> bool {
     let mut conn = pool.get_conn().unwrap();
-    let account = conn.exec_drop(
-        r"insert into copy_trader_mess (tra_id, name, equity, leverage, position, open_order_amt, avaliable_balance, tra_venue, type, total_balance) values (:tra_id, :name, :equity, :leverage, :position, :open_order_amt, :avaliable_balance, :tra_venue, :type, :total_balance)",
-        params! {
-            "tra_id" => tra_id,
-            "name" => name,
-            "equity" => equity,
-            "leverage" => leverage,
-            "position" => position,
-            "open_order_amt" => open_order_amt,
-            "avaliable_balance" => avaliable_balance,
-            "tra_venue" => tra_venue,
-            "type" => r#type,
-            "total_balance" => total_balance
-        },
-    );
-
-    match account {
-        Ok(()) => {
-            return true;
-        }
-        Err(e) => {
-            return false;
+    for mess in trader_mes.subs {
+        println!("穿过来的参数id:{:?}, name:{:?}, equity:{:?}, leverage:{:?}, position:{:?}, open_order_amt:{:?}, avaliable_balance:{:?}, tra_venue:{:?}, type:{:?}, total_balance:{:?}", mess.id, mess.name, mess.total_equity, mess.leverage, mess.position, mess.open_order_amt, mess.available_balance, mess.tra_venue, mess.r#type, mess.total_balance);
+        let account = conn.exec_drop(
+            r"insert into copy_trader_mess (tra_id, name, equity, leverage, position, open_order_amt, avaliable_balance, tra_venue, type, total_balance) values (:tra_id, :name, :equity, :leverage, :position, :open_order_amt, :avaliable_balance, :tra_venue, :type, :total_balance)",
+            params! {
+                "tra_id" => mess.id,
+                "name" => mess.name,
+                "equity" => mess.total_equity,
+                "leverage" => mess.leverage,
+                "position" => mess.position,
+                "open_order_amt" => mess.open_order_amt,
+                "avaliable_balance" => mess.available_balance,
+                "tra_venue" => mess.tra_venue,
+                "type" => mess.r#type,
+                "total_balance" => mess.total_balance
+            },
+        );
+    
+        match account {
+            Ok(()) => {
+                continue;
+            }
+            Err(e) => {
+                return false;
+            }
         }
     }
+
+    return true;
 
 
 }

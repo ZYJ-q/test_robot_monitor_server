@@ -942,45 +942,45 @@ pub async fn single_bybit_account(mut payload: web::Payload, db_pool: web::Data<
 }
 
 
-pub async fn insert_trader_mess(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
+// pub async fn insert_trader_mess(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+//     // payload is a stream of Bytes objects
+//     let mut body = web::BytesMut::new();
+//     while let Some(chunk) = payload.next().await {
+//         let chunk = chunk?;
+//         // limit max size of in-memory payload
+//         if (body.len() + chunk.len()) > MAX_SIZE {
+//             return Err(error::ErrorBadRequest("overflow"));
+//         }
+//         body.extend_from_slice(&chunk);
+//     }
 
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<SelectTraderMess>(&body)?;
+//     // body is loaded, now we can deserialize serde-json
+//     let obj = serde_json::from_slice::<SelectTraderMess>(&body)?;
 
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
+//     match database::is_active(db_pool.clone(), &obj.token) {
+//         true => {}
+//         false => {
+//             return Err(error::ErrorNotFound("account not active"));
+//         }
+//     }
 
-    let data = database::insert_trader_mess(db_pool.clone(), &obj.tra_id, &obj.name, &obj.equity, &obj.leverage, &obj.position, &obj.open_order_amt, &obj.avaliable_balance, &obj.tra_venue, &obj.r#type, &obj.total_balance); 
-    match data {
-        true => {
-            // println!("{:#?}", traders);
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data,
-            }));
-        },
-        false => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 404,
-                data,
-            }).into());
-        },
-    }
-}
+//     let data = database::insert_trader_mess(db_pool.clone(), &obj.tra_id, &obj.name, &obj.equity, &obj.leverage, &obj.position, &obj.open_order_amt, &obj.avaliable_balance, &obj.tra_venue, &obj.r#type, &obj.total_balance); 
+//     match data {
+//         true => {
+//             // println!("{:#?}", traders);
+//             return Ok(HttpResponse::Ok().json(Response {
+//                 status: 200,
+//                 data,
+//             }));
+//         },
+//         false => {
+//             return Ok(HttpResponse::Ok().json(Response {
+//                 status: 404,
+//                 data,
+//             }).into());
+//         },
+//     }
+// }
 
 
 pub async fn single_bian_account(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
@@ -1008,6 +1008,7 @@ pub async fn single_bian_account(mut payload: web::Payload, db_pool: web::Data<P
     match database::get_one_traders(db_pool.clone(), &obj.tra_id) {
         Ok(traders) => {
             let acct_re = actions::get_single_account(traders).await;
+            let dw = database::insert_trader_mess(db_pool.clone(), acct_re.clone());
             return Ok(HttpResponse::Ok().json(Response {
                 status: 200,
                 data: acct_re,
