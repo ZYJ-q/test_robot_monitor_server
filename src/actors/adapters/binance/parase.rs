@@ -212,6 +212,8 @@ pub async fn get_account_positions(
             history_positions.push_back(Value::from(pos_obj));
             }
         }
+
+        println!("仓位数据{:?}", history_positions);
             return history_positions.into();
     } else {
         error!("Can't get {} account.", name);
