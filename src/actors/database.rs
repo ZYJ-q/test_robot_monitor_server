@@ -570,6 +570,33 @@ pub fn insert_traders(pool: web::Data<Pool>,tra_venue: &str, tra_currency: &str,
     };
 }
 
+// 判断该用户是否是账户/账户组的创始者
+pub fn is_admins(pool: web::Data<Pool>, acc_id: &u64, tra_id: &str) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select id from admin where acc_id = :acc_id and tra_id = :tra_id",
+        params! {
+            "acc_id" => acc_id,
+            "tra_id" => tra_id,
+        },
+    );
+    match res {
+        Ok(ids) => {
+            if ids.len() == 0 {
+                println!("找到了{:?}",ids);
+            return false;
+            } else {
+                println!("找到了{:?}",ids);
+            return true;
+            }
+        }
+        Err(_) => {
+            println!("没找到");
+            return false;
+        }
+    }
+}
+
 pub fn check_trader(pool: web::Data<Pool>, api_key: &str, secret_key: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
@@ -836,7 +863,23 @@ pub fn select_accounts(pool: web::Data<Pool>, name: &str, account_id: &u64) -> b
                 );
                 match tra {
                     Ok(c) => {
-                        return true;
+                        let tra_id = format!("{}_acc", active.tra_id);
+                        let admin = conn.exec_drop(
+                            r"insert into admin (acc_id, tra_id) values (:acc_id, :tra_id)",
+                            params! {
+                                "acc_id" => account_id,
+                                "tra_id" => tra_id,
+                            },
+                        );
+                        match admin {
+                            Ok(()) => {
+                                return true;
+                            }
+                            Err(_e) => {
+                                return false;
+                            }
+                            
+                        }
                     },
                     Err(e) => {
                         return false;
@@ -1582,6 +1625,119 @@ pub fn delete_acc_group_share_list(pool: web::Data<Pool>, to_id: &str, group_id:
 }
 
 
+
+// 删除账户组
+pub fn delete_acc_group(pool: web::Data<Pool>, group_id: &u64, account_id: &u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let account_group = conn.exec_drop(
+        r"delete from account_group where group_id = :group_id",
+        params! {
+            "group_id" => group_id,
+        },
+    ).unwrap();
+
+    let acc_group = conn.exec_drop(
+        r"delete from acc_group where group_id = :group_id", 
+        params! {
+            "group_id" => group_id,
+        },
+    ).unwrap();
+
+
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from group_tra where group_id = :group_id", 
+        params! {
+            "group_id" => group_id,
+        },
+    );
+    match res {
+        Ok(tra_ids) => {
+            for tra_id in tra_ids{
+                let acc_tra = conn.exec_drop(
+                    r"update acc_tra set is_show = :is_show where acc_id = :acc_id and tra_id = :tra_id", 
+                    params! {
+                        "is_show" => "true",
+                        "acc_id" => account_id,
+                        "tra_id" => tra_id
+                    }
+                );
+                match acc_tra {
+                    Ok(()) => {
+                        let acc = conn.exec_drop(
+                            r"delete from acc_tra where is_show = :is_show and tra_id = :tra_id", 
+                            params! {
+                                "is_show" => "false",
+                                "tra_id" => tra_id
+                            }
+                        );
+
+                    }
+                    Err(_e) => {
+                        return false;
+                    }
+                    
+                }
+
+            }
+            return true;
+
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
+
+// 移除账户组
+pub fn remove_acc_group(pool: web::Data<Pool>, group_id: &u64, account_id: &u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+
+    let acc_group = conn.exec_drop(
+        r"delete from acc_group where group_id = :group_id and acc_id = :acc_id", 
+        params! {
+            "group_id" => group_id,
+            "acc_id" => account_id
+        },
+    ).unwrap();
+
+
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select tra_id from group_tra where group_id = :group_id", 
+        params! {
+            "group_id" => group_id,
+        },
+    );
+    match res {
+        Ok(tra_ids) => {
+            for tra_id in tra_ids{
+                let acc_tra = conn.exec_drop(
+                    r"delete from acc_tra where is_show = :is_show and tra_id = :tra_id and acc_id = :acc_id", 
+                    params! {
+                        "is_show" => "false",
+                        "tra_id" => tra_id,
+                        "acc_id" => account_id
+                    }
+                );
+                match acc_tra {
+                    Ok(()) => {
+                        continue;
+                    }
+                    Err(_e) => {
+                        return false;
+                    }
+                    
+                }
+
+            }
+            return true;
+
+        }
+        Err(e) => {
+            return false;
+        }
+    }
+}
+
 pub fn insert_trader_mess (pool: web::Data<Pool>, trader_mes: AccountRe ) -> bool {
     let mut conn = pool.get_conn().unwrap();
     for mess in trader_mes.subs {
@@ -1743,7 +1899,22 @@ pub fn insert_acc_group(pool: web::Data<Pool>, name: &str, account_id: &u64) -> 
 
                     match tra {
                         Ok(()) => {
-                            continue;
+                            let tra_id = format!("{}_group", group_id);
+                            let admin = conn.exec_drop(
+                                r"insert into admin (acc_id, tra_id) values (:acc_id, :tra_id)",
+                                params! {
+                                    "acc_id" => account_id,
+                                    "tra_id" => tra_id,
+                                },
+                            );
+                            match admin {
+                                Ok(()) => {
+                                    continue;
+                                },
+                                Err(e) => {
+                                    continue;
+                                }
+                            };
                         }
                         Err(_e) => {
                             return false;
@@ -3593,10 +3764,9 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
     match res {
         Ok(()) => {
             let account = conn.exec_drop(
-                r"delete from acc_tra where tra_id = :tra_id and acc_id = :acc_id",
+                r"delete from acc_tra where tra_id = :tra_id",
                 params! {
                     "tra_id" => tra_id,
-                    "acc_id" => account_id
                 },
             );
             match account {

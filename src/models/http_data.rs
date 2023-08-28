@@ -124,6 +124,22 @@ pub struct SelectAccounts {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct CheckAdmins {
+    pub tra_id: String,
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DelAccGroup {
+    pub group_id: u64,
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CheckAccounts {
     pub api_key: String,
     pub secret_key: String,
