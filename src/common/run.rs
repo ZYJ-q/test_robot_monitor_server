@@ -121,6 +121,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/del_acc_group").route(web::post().to(handlers::delete_acc_group)))
             .service(web::resource("/remove_acc_group").route(web::post().to(handlers::remove_acc_group)))
             .service(web::resource("/remove_accounts").route(web::post().to(handlers::remove_accounts_data)))
+            .service(web::resource("/get_total_account").route(web::post().to(handlers::get_total_account)))
     })
     .bind((ip.as_str(), 8081))?
     .run();
