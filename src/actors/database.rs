@@ -1416,6 +1416,7 @@ pub fn insert_group_tra(pool: web::Data<Pool>, name: &str, tra: Vec<u64>) -> boo
 // 删除此账号权限
 pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u64> ) -> bool {
     let mut conn = pool.get_conn().unwrap();
+    println!("传过来的参数{}, {:?}", account_id, tra_id);
     for tra in &tra_id {
         let res = conn.exec_drop(
             r"update from acc_tra set is_show = :is_show where acc_id=:acc_id and tra_id=:tra_id",
@@ -1428,9 +1429,11 @@ pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u
 
         match res {
             Ok(()) => {
+                println!("成功");
                 continue;
             }
             Err(e) => {
+                println!("失败{}", e);
                 return false;
             }
         }
@@ -1900,6 +1903,7 @@ pub fn insert_acc_group(pool: web::Data<Pool>, name: &str, account_id: &u64) -> 
                     match tra {
                         Ok(()) => {
                             let tra_id = format!("{}_group", group_id);
+                            println!("添加账户组权限{}", tra_id);
                             let admin = conn.exec_drop(
                                 r"insert into admin (acc_id, tra_id) values (:acc_id, :tra_id)",
                                 params! {
