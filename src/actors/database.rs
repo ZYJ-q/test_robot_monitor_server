@@ -1419,7 +1419,7 @@ pub fn delete_account_tra(pool: web::Data<Pool>, account_id: &u64, tra_id: Vec<u
     println!("传过来的参数{}, {:?}", account_id, tra_id);
     for tra in &tra_id {
         let res = conn.exec_drop(
-            r"update from acc_tra set is_show = :is_show where acc_id=:acc_id and tra_id=:tra_id",
+            r"update acc_tra set is_show = :is_show where acc_id=:acc_id and tra_id=:tra_id",
             params! {
                 "is_show" => "false",
                 "tra_id" => tra,
