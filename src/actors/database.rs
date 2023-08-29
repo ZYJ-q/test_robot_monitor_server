@@ -3513,7 +3513,7 @@ pub fn add_positions(pool: web::Data<Pool>, name:&str, api_key: &str, secret_key
 pub fn update_alarms(pool: web::Data<Pool>, tra_id:&str, account_id:&u64, open_alarm: &str, position_alarm: &str, position_amount: &str, equity_alarm: &str, equity_amount: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res: Result<Vec<u64>> = conn.exec(
-        r"select id acc_alarm where acc_id = :acc_id and tra_id = :tra_id",
+        r"select id from acc_alarm where acc_id = :acc_id and tra_id = :tra_id",
         params! {
             "tra_id" => tra_id,
             "acc_id" => account_id
@@ -3522,6 +3522,7 @@ pub fn update_alarms(pool: web::Data<Pool>, tra_id:&str, account_id:&u64, open_a
     match res {
         Ok(ids) => {
             if ids.len() == 0 {
+                println!("长度等于0{:?}", ids);
                 let alarm = conn.exec_drop(
                     r"insert into acc_alarm (acc_id, tra_id, open_alarm, position_alarm, position_amount, equity_alarm, equity_amount) values (:acc_id, :tra_id, :open_alarm, :position_alarm, :position_amount, :equity_alarm, :equity_amount)", 
                     params! {
@@ -3533,7 +3534,15 @@ pub fn update_alarms(pool: web::Data<Pool>, tra_id:&str, account_id:&u64, open_a
                         "equity_alarm" => equity_alarm,
                         "equity_amount" => equity_amount
                     },
-                ).unwrap();
+                );
+                match alarm {
+                    Ok(()) => {
+                        return true;
+                    }
+                    Err(_e) => {
+                        return false;
+                    }  
+                }
             } else {
                 for id in ids{
                     let update = conn.exec_drop(
@@ -3562,6 +3571,7 @@ pub fn update_alarms(pool: web::Data<Pool>, tra_id:&str, account_id:&u64, open_a
             
         }
         Err(e) => {
+            println!("失败{}", e);
             return false;
         }
     }
