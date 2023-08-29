@@ -62,6 +62,29 @@ pub struct GroupAccountProRes {
     pub(crate) total_balance: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AccProRes {
+    pub(crate) tra_id: u64,
+    pub(crate) name: String,
+    pub(crate) equity: String,
+    pub(crate) leverage: String,
+    pub(crate) position: String,
+    pub(crate) open_order_amt: String,
+    pub(crate) avaliable_balance: String,
+    pub(crate) tra_venue: String,
+    pub(crate) r#type: String,
+    pub(crate) total_balance: String,
+}
+
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AccountProRes {
+    pub(crate) acc_mess: Vec<AccProRes>,
+    pub(crate) group_mess: Vec<GroupAccountProRes>,
+    
+}
+
+
 
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -259,15 +282,11 @@ pub struct InsertAccount {
     pub token: String,
     pub tra_venue: String, 
     pub tra_currency: String, 
-    pub ori_balance: String, 
     pub api_key: String, 
     pub secret_key: String, 
     pub r#type: String, 
     pub name: String, 
-    pub alarm: String, 
-    pub threshold: String, 
-    pub thres_amount: String, 
-    pub borrow_currency: String
+    pub borrow: String
 }
 
 
@@ -301,10 +320,17 @@ pub struct Trade {
     pub token: String
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Notices {
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddTradeNotice {
-    pub tra_id: String,
+    pub account_id: u64,
     pub wx_hook: String,
     pub wx_name: String,
     pub r#type: String,
@@ -313,7 +339,7 @@ pub struct AddTradeNotice {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AddTradeSlackNotice {
-    pub tra_id: String,
+    pub account_id: u64,
     pub slack_hook: String,
     pub slack_name: String,
     pub r#type: String,
@@ -464,8 +490,13 @@ pub struct UpdateEquitys{
 pub struct UpdateAlarms{
     pub r#type: String,
     pub token: String,
-    pub name: String,
-    pub alarm: String
+    pub tra_id: String,
+    pub account_id: u64,
+    pub open_alarm: String,
+    pub position_alarm: String,
+    pub position_amount: String,
+    pub equity_alarm: String,
+    pub equity_amount: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]

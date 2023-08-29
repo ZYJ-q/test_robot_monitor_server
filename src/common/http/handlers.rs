@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList,SelectTraderMess, DelAccGroup, CheckAdmins, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, AccountProRes, DelAccGroup, CheckAdmins, Notices, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -389,7 +389,7 @@ pub async fn insert_trader(mut payload: web::Payload, db_pool: web::Data<Pool>) 
         }
     }
 
-    let data = database::insert_traders(db_pool.clone(), &obj.tra_venue, &obj.tra_currency, &obj.ori_balance, &obj.api_key, &obj.secret_key, &obj.r#type, &obj.name, &obj.alarm, &obj.threshold, &obj.thres_amount, &obj.borrow_currency); 
+    let data = database::insert_traders(db_pool.clone(), &obj.tra_venue, &obj.tra_currency, &obj.api_key, &obj.secret_key, &obj.r#type, &obj.name, &obj.borrow); 
     match data {
         true => {
             // println!("{:#?}", traders);
@@ -1213,9 +1213,13 @@ pub async fn get_account_message(mut payload: web::Payload, db_pool: web::Data<P
     let date =  database::get_all_traders_message(db_pool.clone(), &obj.account_id);
         match date {
             Ok(traders) => {
+                let group = database::get_account_group_tra(db_pool.clone(), obj.account_id).unwrap();
                 return Ok(HttpResponse::Ok().json(Response {
                     status: 200,
-                    data: traders,
+                    data: AccountProRes {
+                        acc_mess: traders,
+                        group_mess: group
+                    },
                 }));
             }
             Err(e) => {
@@ -2408,8 +2412,8 @@ pub async fn history_incomes(mut payload: web::Payload, db_pool: web::Data<Pool>
 }
 
 
-// 查找账户的通知方式
-pub async fn get_trader_notices(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+// 查找wx的通知方式
+pub async fn get_wx_notices(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -2422,7 +2426,7 @@ pub async fn get_trader_notices(mut payload: web::Payload, db_pool: web::Data<Po
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Trade>(&body)?;
+    let obj = serde_json::from_slice::<Notices>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -2431,7 +2435,45 @@ pub async fn get_trader_notices(mut payload: web::Payload, db_pool: web::Data<Po
         }
     }
 
-    let data = database::trader_notice_way(db_pool.clone(), &obj.tra_id);
+    let data = database::get_wx_notice_way(db_pool.clone(), &obj.account_id);
+    match data {
+        Ok(histor_income) => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data: histor_income,
+            }));    
+        }
+        Err(e) => {
+            return Err(error::ErrorNotFound(e));
+        }
+        
+    }
+}
+
+// 查找账户的slack通知方式
+pub async fn get_slack_notice(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<Notices>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::get_slack_notice_way(db_pool.clone(), &obj.account_id);
     match data {
         Ok(histor_income) => {
             return Ok(HttpResponse::Ok().json(Response {
@@ -2470,7 +2512,7 @@ pub async fn add_wx_trader_notices(mut payload: web::Payload, db_pool: web::Data
         }
     }
 
-    let data = database::insert_traders_wx_notices(db_pool.clone(), &obj.tra_id, &obj.wx_hook, &obj.wx_name);
+    let data = database::insert_traders_wx_notices(db_pool.clone(), &obj.account_id, &obj.wx_hook, &obj.wx_name);
     match data {
         true => {
             return Ok(HttpResponse::Ok().json(Response {
@@ -2510,7 +2552,7 @@ pub async fn check_weixin_ways(mut payload: web::Payload, db_pool: web::Data<Poo
         }
     }
 
-    let data =  database::check_traders_wx_notices(db_pool.clone(), &obj.tra_id, &obj.wx_hook, &obj.wx_name);
+    let data =  database::check_traders_wx_notices(db_pool.clone(), &obj.account_id, &obj.wx_hook, &obj.wx_name);
         match data {
             Ok(traders) => {
                 // println!("{:#?}", traders);
@@ -2551,7 +2593,7 @@ pub async fn add_slack_trader_notices(mut payload: web::Payload, db_pool: web::D
         }
     }
 
-    let data = database::insert_traders_slack_notices(db_pool.clone(), &obj.tra_id, &obj.slack_hook, &obj.slack_name);
+    let data = database::insert_traders_slack_notices(db_pool.clone(), &obj.account_id, &obj.slack_hook, &obj.slack_name);
     match data {
         true => {
             return Ok(HttpResponse::Ok().json(Response {
@@ -3071,7 +3113,7 @@ pub async fn check_slack_ways(mut payload: web::Payload, db_pool: web::Data<Pool
         }
     }
 
-    let data =  database::check_traders_slack_notices(db_pool.clone(), &obj.tra_id, &obj.slack_hook, &obj.slack_name);
+    let data =  database::check_traders_slack_notices(db_pool.clone(), &obj.account_id, &obj.slack_hook, &obj.slack_name);
         match data {
             Ok(traders) => {
                 // println!("{:#?}", traders);
@@ -3597,160 +3639,6 @@ pub async fn add_positions_data(mut payload: web::Payload, db_pool: web::Data<Po
 }
 
 
-// 更新监控的净头寸账户阈值
-pub async fn update_positions_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<UpdatePositions>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::update_positions(db_pool.clone(), &obj.name, &obj.threshold);
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}
-
-
-// 更新权益监控和权益监控中的阈值
-pub async fn update_equitys_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<UpdateEquitys>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::update_equitys(db_pool.clone(), &obj.name, &obj.equitys);
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}
-
-
-// 更新监控的净头寸
-pub async fn update_positions(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<UpdatePositions>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::update_threshold(db_pool.clone(), &obj.name, &obj.threshold);
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}
-
-
-// 更新账户份额
-pub async fn update_ori_balance_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<UpdateOriBalance>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::update_ori_balance(db_pool.clone(), &obj.tra_id, &obj.ori_balance);
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}
 
 // 更新账户是否进行监控
 pub async fn update_accounts_alarm(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
@@ -3775,16 +3663,19 @@ pub async fn update_accounts_alarm(mut payload: web::Payload, db_pool: web::Data
         }
     }
 
-    let data = database::update_alarms(db_pool.clone(), &obj.name, &obj.alarm);
+    let data = database::update_alarms(db_pool.clone(), &obj.tra_id, &obj.account_id, &obj.open_alarm, &obj.position_alarm, &obj.position_amount, &obj.equity_alarm, &obj.equity_amount);
     match data {
-        Ok(all_products) => {
+        true => {
             return Ok(HttpResponse::Ok().json(Response {
                 status: 200,
-                data: all_products,
+                data,
             }));    
         }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
+        false => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 404,
+                data,
+            }).into());
         }
         
     }
@@ -4136,79 +4027,4 @@ pub async fn select_tra_id(mut payload: web::Payload, db_pool: web::Data<Pool>) 
 }
 
 
-//获取所有的净值数据
-pub async fn get_net_worths_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
 
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Equity>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::get_net_worths(db_pool.clone());
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}
-
-
-//获取所有的权益数据
-pub async fn get_equitys_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Equity>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let data = database::get_equitys(db_pool.clone());
-    match data {
-        Ok(all_products) => {
-            return Ok(HttpResponse::Ok().json(Response {
-                status: 200,
-                data: all_products,
-            }));    
-        }
-        Err(e) => {
-            return Err(error::ErrorNotFound(e));
-        }
-        
-    }
-}

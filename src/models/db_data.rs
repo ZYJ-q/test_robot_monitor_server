@@ -89,11 +89,7 @@ pub struct Trader {
     pub secret_key: String,
     pub r#type: String,
     pub name: String,
-    pub alarm: String,
-    pub threshold: String,
     pub borrow: String,
-    pub amount: String,
-    pub wx_hook: String,
 }
 
 
@@ -141,15 +137,19 @@ pub struct InvitationData {
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NoticesData {
+pub struct SlackNotices {
     pub id: u64,
-    pub tra_id: u64,
-    pub wx_hook: String,
-    pub wx_name: String,
+    pub acc_id: u64,
     pub slack_hook: String,
     pub slack_name: String,
-    pub mess_hook: String,
-    pub mess_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct WxNotices {
+    pub id: u64,
+    pub acc_id: u64,
+    pub wx_hook: String,
+    pub wx_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

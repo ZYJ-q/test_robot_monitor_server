@@ -51,8 +51,7 @@ pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data
         let name = key;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
-        let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_sub(value, name, id, &borrow_currency,  &alarm).await;
+        let res = get_account_sub(value, name, id, &borrow_currency).await;
         match res {
             Some(sub) => {
                 // equities += sub.total_equity.parse::<f64>().unwrap();
@@ -145,13 +144,12 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
     for (key, value) in &name_api {
         let name = key;
         let id = &traders.get(name).unwrap().tra_id;
-        let alarm = &traders.get(name).unwrap().alarm;
         let borrow_currency = &traders.get(name).unwrap().borrow;
 
         
         
         for (keys, values) in &name_future_api {
-            let res = get_papi_account_sub(value, values, name, id, borrow_currency, &alarm).await;
+            let res = get_papi_account_sub(value, values, name, id, borrow_currency).await;
         
         match res {
             Some(sub) => {
@@ -221,8 +219,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
-        let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_bybit(value, name, id, borrow_currency, &alarm).await;
+        let res = get_account_bybit(value, name, id, borrow_currency).await;
         
         match res {
             Some(sub) => {
@@ -336,8 +333,7 @@ pub async fn get_single_account(traders: HashMap<String, db_data::Trader>) -> ht
         let name = key;
         let id = &traders.get(name).unwrap().tra_id;
         let borrow_currency = &traders.get(name).unwrap().borrow;
-        let alarm = &traders.get(name).unwrap().alarm;
-        let res = get_account_sub(value, name, id, borrow_currency, &alarm).await;
+        let res = get_account_sub(value, name, id, borrow_currency).await;
         match res {
             Some(sub) => {
                 subs.push(sub);

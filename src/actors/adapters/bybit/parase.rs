@@ -13,7 +13,6 @@ pub async fn get_account_bybit(
   name: &str,
   id: &u64,
   borrow_currency: &str,
-  alarm: &str,
 ) -> Option<Sub> {
   if let Some(data) = http_api.account().await {
       let value: Value = serde_json::from_str(&data).unwrap();
