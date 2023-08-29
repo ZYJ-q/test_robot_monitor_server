@@ -10,7 +10,7 @@ use mysql::*;
 use crate::models::http_data::AccProRes;
 
 // use super::AlarmUnit;
-use super::db_data::{ Account, Active, AccountData, Product, Trader, ShareList, GroupTra, NewTrade, TraderMessage, AccountGroup, BybitNewTrade, ClearData, WxNotices, SlackNotices, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
+use super::db_data::{ Account, Active, AccountData, Product, Trader, ShareList, GroupTra, NewTrade, TraderMessage, TraderAlarm, AccountGroup, BybitNewTrade, ClearData, WxNotices, SlackNotices, InvitationData, Trade, Position, NetWorth, Equity, NewPrice, HistoryIncomes, OpenOrders, PositionsAlarm, BybitTrade, NetWorths, Equitys, BybitEquity, BianEquity};
 use super::http_data::{SignInProRes, CreateInvitationProRes, GroupAccountProRes, AccountRe, GroupEquitysProRes};
 
 pub fn create_pool(config_db: HashMap<String, String>) -> Pool {
@@ -2192,6 +2192,62 @@ pub fn get_only_traders(pool: web::Data<Pool>, tra_id: &str) -> Result<Option<Ve
                                     r#type,
                                     name,
                                     borrow,
+                                },
+                            )
+                        },
+                    );
+                    match res {
+                        Ok(trader) => match trader {
+                            Some(tra) => {
+                                re.push(tra);
+                            }
+                            None => {
+                                return Ok(Some(re));
+                            }
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    }
+    return Ok(Some(re));
+}
+
+
+
+
+pub fn get_traders_alarm(pool: web::Data<Pool>, account_id: &u64, tra_id: &str) -> Result<Option<Vec<TraderAlarm>>> {
+    let mut re: Vec<TraderAlarm> = Vec::new();
+    let mut conn = pool.get_conn().unwrap();
+    let res = conn
+    .exec_first(
+                r"select * from acc_alarm where tra_id = :tra_id and acc_id = :acc_id",
+                params! {
+                        "tra_id" => tra_id,
+                        "acc_id" => account_id
+                        },
+                )
+                .map(
+                        // Unpack Result
+                        |row| {
+                            row.map(
+                                |(
+                                    id,
+                                    acc_id,
+                                    tra_id,
+                                    open_alarm,
+                                    position_alarm,
+                                    position_amount,
+                                    equity_alarm,
+                                    equity_amount,
+                                )| TraderAlarm {
+                                    id,
+                                    acc_id,
+                                    tra_id,
+                                    open_alarm,
+                                    position_alarm,
+                                    position_amount,
+                                    equity_alarm,
+                                    equity_amount,
                                 },
                             )
                         },

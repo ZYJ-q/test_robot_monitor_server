@@ -92,6 +92,18 @@ pub struct Trader {
     pub borrow: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TraderAlarm {
+    pub id: u64,
+    pub acc_id: u64,
+    pub tra_id: u64,
+    pub open_alarm: String,
+    pub position_alarm: String,
+    pub position_amount: String,
+    pub equity_alarm: String,
+    pub equity_amount: String,
+}
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TraderMessage {

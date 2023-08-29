@@ -321,6 +321,14 @@ pub struct Trade {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct TradeAlarm {
+    pub account_id: u64,
+    pub tra_id: String,
+    pub r#type: String,
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Notices {
     pub account_id: u64,
     pub r#type: String,

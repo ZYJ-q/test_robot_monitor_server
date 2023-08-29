@@ -94,7 +94,6 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/add_group_tra").route(web::post().to(handlers::add_group_tra)))
             .service(web::resource("/delete_acc_tra").route(web::post().to(handlers::delete_acc_tra)))
             .service(web::resource("/add_acc_group").route(web::post().to(handlers::add_acc_group)))
-            .service(web::resource("/get_acc_group_data").route(web::post().to(handlers::get_account_group_data)))
             .service(web::resource("/get_acc_group_data_detail").route(web::post().to(handlers::get_account_detail_group_data)))
             .service(web::resource("/get_acc_group_equitys").route(web::post().to(handlers::get_account_detail_group_equitys)))
             .service(web::resource("/is_acc_group").route(web::post().to(handlers::is_account_group)))
@@ -117,6 +116,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/remove_acc_group").route(web::post().to(handlers::remove_acc_group)))
             .service(web::resource("/remove_accounts").route(web::post().to(handlers::remove_accounts_data)))
             .service(web::resource("/get_total_account").route(web::post().to(handlers::get_total_account)))
+            .service(web::resource("/get_trader_alarms").route(web::post().to(handlers::get_acc_traders_alarms)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

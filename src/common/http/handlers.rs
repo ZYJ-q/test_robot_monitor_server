@@ -5,6 +5,8 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
+use crate::models::http_data::TradeAlarm;
+
 use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, AccountProRes, DelAccGroup, CheckAdmins, Notices, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
@@ -2820,43 +2822,6 @@ pub async fn add_acc_group(mut payload: web::Payload, db_pool: web::Data<Pool>) 
     }
 }
 
-pub async fn get_account_group_data(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
-    // payload is a stream of Bytes objects
-    let mut body = web::BytesMut::new();
-    while let Some(chunk) = payload.next().await {
-        let chunk = chunk?;
-        // limit max size of in-memory payload
-        if (body.len() + chunk.len()) > MAX_SIZE {
-            return Err(error::ErrorBadRequest("overflow"));
-        }
-        body.extend_from_slice(&chunk);
-    }
-
-    // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<Group>(&body)?;
-
-    match database::is_active(db_pool.clone(), &obj.token) {
-        true => {}
-        false => {
-            return Err(error::ErrorNotFound("account not active"));
-        }
-    }
-
-    let date =  database::get_account_group_tra(db_pool.clone(), obj.account_id);
-        match date {
-            Ok(traders) => {
-                return Ok(HttpResponse::Ok().json(Response {
-                    status: 200,
-                    data: traders,
-                }));
-            }
-            Err(e) => {
-                return Err(error::ErrorInternalServerError(e));
-            }
-            
-        }
-}
-
 
 pub async fn get_account_group(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     // payload is a stream of Bytes objects
@@ -2997,6 +2962,44 @@ pub async fn get_only_acc_traders(mut payload: web::Payload, db_pool: web::Data<
     }
 
     let date =  database::get_only_traders(db_pool.clone(), &obj.tra_id);
+        match date {
+            Ok(traders) => {
+                return Ok(HttpResponse::Ok().json(Response {
+                    status: 200,
+                    data: traders,
+                }));
+            }
+            Err(e) => {
+                return Err(error::ErrorInternalServerError(e));
+            }
+            
+        }
+}
+
+
+pub async fn get_acc_traders_alarms(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<TradeAlarm>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let date =  database::get_traders_alarm(db_pool.clone(), &obj.account_id, &obj.tra_id);
         match date {
             Ok(traders) => {
                 return Ok(HttpResponse::Ok().json(Response {
