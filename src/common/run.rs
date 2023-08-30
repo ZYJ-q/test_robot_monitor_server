@@ -82,10 +82,10 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/add_accounts_invitation").route(web::post().to(handlers::insert_accounts)))
             .service(web::resource("/select_all_invitation").route(web::post().to(handlers::select_all_invitations)))
             .service(web::resource("/get_wx_notices").route(web::post().to(handlers::get_wx_notices)))
+            .service(web::resource("/get_slack_notices").route(web::post().to(handlers::get_slack_notice)))
             .service(web::resource("/get_trader_message").route(web::post().to(handlers::get_account_message)))
             .service(web::resource("/add_wx_trader_notices").route(web::post().to(handlers::add_wx_trader_notices)))
             .service(web::resource("/check_wx_ways").route(web::post().to(handlers::check_weixin_ways)))
-            .service(web::resource("/check_slack_ways").route(web::post().to(handlers::check_slack_ways)))
             .service(web::resource("/check_slack_ways").route(web::post().to(handlers::check_slack_ways)))
             .service(web::resource("/add_slack_trader_notices").route(web::post().to(handlers::add_slack_trader_notices)))
             .service(web::resource("/delete_slack_trader_notices").route(web::post().to(handlers::delete_slack_trader_notices)))
@@ -117,6 +117,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/remove_accounts").route(web::post().to(handlers::remove_accounts_data)))
             .service(web::resource("/get_total_account").route(web::post().to(handlers::get_total_account)))
             .service(web::resource("/get_trader_alarms").route(web::post().to(handlers::get_acc_traders_alarms)))
+            .service(web::resource("/is_notices_num").route(web::post().to(handlers::check_notices_num)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::http_data::TradeAlarm;
 
-use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, AccountProRes, DelAccGroup, CheckAdmins, Notices, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
+use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, AccountProRes, CheckNoticesNum, DelAccGroup, CheckAdmins, Notices, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
 const MAX_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -2613,6 +2613,47 @@ pub async fn add_slack_trader_notices(mut payload: web::Payload, db_pool: web::D
     }
 }
 
+
+// 查找通知方式是否超过5个
+pub async fn check_notices_num(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    // payload is a stream of Bytes objects
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let obj = serde_json::from_slice::<CheckNoticesNum>(&body)?;
+
+    match database::is_active(db_pool.clone(), &obj.token) {
+        true => {}
+        false => {
+            return Err(error::ErrorNotFound("account not active"));
+        }
+    }
+
+    let data = database::is_notices_number(db_pool.clone(), obj.account_id);
+    match data {
+        true => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 200,
+                data,
+            }));    
+        }
+        false => {
+            return Ok(HttpResponse::Ok().json(Response {
+                status: 404,
+                data,
+            }).into());
+        }
+        
+    }
+}
 
 // 删除账户的通知方式
 pub async fn delete_slack_trader_notices(mut payload: web::Payload, db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {

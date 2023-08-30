@@ -354,6 +354,14 @@ pub struct AddTradeSlackNotice {
     pub token: String
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CheckNoticesNum {
+    pub account_id: u64,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteTradeSlackNotice {
     pub tra_id: String,

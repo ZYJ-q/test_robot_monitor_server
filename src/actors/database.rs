@@ -1386,6 +1386,73 @@ pub fn is_acc_tra(pool: web::Data<Pool>, account_id: u64, tra_id: u64) -> bool {
 
 
 
+pub fn is_notices_number(pool: web::Data<Pool>, account_id: u64) -> bool {
+    let mut conn = pool.get_conn().unwrap();
+    let res: Result<Vec<u64>> = conn.exec(
+        r"select id from wx_notice where acc_id = :acc_id",
+        params! {
+            "acc_id" => account_id,
+        },
+    );
+    match res {
+        Ok(ids) => {
+            if ids.len() == 0 {
+                let slack: Result<Vec<u64>> = conn.exec(
+                    r"select id from slack_notice where acc_id = :acc_id",
+                    params! {
+                        "acc_id" => account_id,
+                    },
+                );
+
+                match slack {
+                    Ok(slackids) => {
+                        if slackids.len() == 5 {
+                            return false;
+                        } else {
+                            return true;
+                        }
+
+                    }
+                    Err(_) => {
+                        return true;
+
+                    }
+                    
+                }
+            } else {
+                let slack: Result<Vec<u64>> = conn.exec(
+                    r"select id from slack_notice where acc_id = :acc_id",
+                    params! {
+                        "acc_id" => account_id,
+                    },
+                );
+
+                match slack {
+                    Ok(slackids) => {
+                        if slackids.len() + ids.len() == 5 {
+                            return false;
+                        } else {
+                            return true;
+                        }
+
+                    }
+                    Err(_) => {
+                        return true;
+
+                    }
+                    
+                }
+            }
+        }
+        Err(_) => {
+            return true;
+        }
+    }
+}
+
+
+
+
 
 
 
