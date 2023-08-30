@@ -5,7 +5,7 @@ use mysql::Pool;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use crate::models::http_data::TradeAlarm;
+use crate::models::http_data::{TradeAlarm, DeleteTradeWxNotice};
 
 use super::{database, SignIn, SignInRes, SignOut, InvitationRes, AccShareList, AccountProRes, CheckNoticesNum, DelAccGroup, CheckAdmins, Notices, CheckAccounts, SelectTraders,AccShareTra, UpdateEquitys, AccGroupShare, DeleteShareList, DeleteShareAcc, DeleteShareAccGroup, IsAccTra, AddShareList, DetailGroup, IsAccGroup, DeleteTradeSlackNotice, Group, AddGroupTra, AddAccGroup, DeleteAccountTra, AddAccountGroup, AddTradeSlackNotice, AddTradeNotice, SelectAllInvitation, SelectInvitation, InsertAccounts, SelectWeixin,CreateInvitation, SelectNewOrders, UpdateBorrow, UpdateCurreny, Klines, SelectAccounts, InsertAccount, Account, actions, Trade, Posr, NetWorthRe, IncomesRe, Equity, DateTrade, DelectOrders, AddOrders, AddPositions, UpdatePositions,AccountEquity, UpdateOriBalance, UpdateAlarms, AddAccounts, SelectId, SelectAccount};
 
@@ -2678,7 +2678,7 @@ pub async fn delete_slack_trader_notices(mut payload: web::Payload, db_pool: web
         }
     }
 
-    let data = database::delete_slack_trader_notices(db_pool.clone(), &obj.tra_id, &obj.hook);
+    let data = database::delete_slack_trader_notices(db_pool.clone(), &obj.account_id, &obj.slack_hook);
     match data {
         true => {
             return Ok(HttpResponse::Ok().json(Response {
@@ -3108,7 +3108,7 @@ pub async fn delete_wx_trader_notices(mut payload: web::Payload, db_pool: web::D
     }
 
     // body is loaded, now we can deserialize serde-json
-    let obj = serde_json::from_slice::<DeleteTradeSlackNotice>(&body)?;
+    let obj = serde_json::from_slice::<DeleteTradeWxNotice>(&body)?;
 
     match database::is_active(db_pool.clone(), &obj.token) {
         true => {}
@@ -3117,7 +3117,7 @@ pub async fn delete_wx_trader_notices(mut payload: web::Payload, db_pool: web::D
         }
     }
 
-    let data = database::delete_wx_trader_notices(db_pool.clone(), &obj.tra_id, &obj.hook);
+    let data = database::delete_wx_trader_notices(db_pool.clone(), &obj.account_id, &obj.wx_hook);
     match data {
         true => {
             return Ok(HttpResponse::Ok().json(Response {

@@ -364,8 +364,17 @@ pub struct CheckNoticesNum {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteTradeSlackNotice {
-    pub tra_id: String,
-    pub hook: String,
+    pub account_id: u64,
+    pub slack_hook: String,
+    pub r#type: String,
+    pub token: String
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteTradeWxNotice {
+    pub account_id: u64,
+    pub wx_hook: String,
     pub r#type: String,
     pub token: String
 }

@@ -2392,15 +2392,13 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
 
 
 // 删除此通知方式
-pub fn delete_wx_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
+pub fn delete_wx_trader_notices(pool: web::Data<Pool>, account_id:&u64, wx_hook: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update notices set wx_hook = :hook, wx_name = :wx_name where tra_id = :tra_id and wx_hook = :wx_hook",
+        r"delete from wx_notices where acc_id = :acc_id and wx_hook = :wx_hook",
         params! {
-            "tra_id" => tra_id,
-            "wx_hook" => hook,
-            "hook" => "",
-            "wx_name" => ""
+            "acc_id" => account_id,
+            "wx_hook" => wx_hook,
         },
     );
     match res {
@@ -2417,15 +2415,13 @@ pub fn delete_wx_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) 
 
 
 // 删除此通知方式
-pub fn delete_slack_trader_notices(pool: web::Data<Pool>, tra_id:&str, hook: &str) -> bool {
+pub fn delete_slack_trader_notices(pool: web::Data<Pool>, account_id:&u64, slack_hook: &str) -> bool {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
-        r"update notices set slack_hook = :hook, slack_name = :slack_name where tra_id = :tra_id and slack_hook = :slack_hook",
+        r"delete from slack_notices where acc_id = :acc_id and slack_hook = :slack_hook",
         params! {
-            "tra_id" => tra_id,
-            "slack_hook" => hook,
-            "hook" => "",
-            "slack_name" => ""
+            "acc_id" => account_id,
+            "slack_hook" => slack_hook,
         },
     );
     match res {
