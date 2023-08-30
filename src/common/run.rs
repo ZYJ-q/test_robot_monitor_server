@@ -8,7 +8,7 @@ use super::http::handlers;
 
 
 pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::Result<()> {
-    log::info!("starting HTTP server at http://{}:8081", &ip);
+    log::info!("starting HTTP server at http://{}:8082", &ip);
 
     let pool = database::create_pool(config_db);
 
@@ -119,7 +119,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/get_trader_alarms").route(web::post().to(handlers::get_acc_traders_alarms)))
             .service(web::resource("/is_notices_num").route(web::post().to(handlers::check_notices_num)))
     })
-    .bind((ip.as_str(), 8081))?
+    .bind((ip.as_str(), 8082))?
     .run();
 
     return server.await;
