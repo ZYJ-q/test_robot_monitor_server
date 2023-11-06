@@ -20,6 +20,7 @@ pub async fn get_account_sub(
         let value: Value = serde_json::from_str(&data).unwrap();
         // println!("账户信息binance{}", value);
         let assets = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
+        let total_maint_margin: f64 = value.as_object().unwrap().get("totalMaintMargin").unwrap().as_str().unwrap().parse().unwrap();
         // if name == "trader02" {
         //     println!(" 账户数据{:?}", assets);
         // }
@@ -27,11 +28,9 @@ pub async fn get_account_sub(
         let mut total_margin_balance = 0.0;
         let mut new_total_equity = 0.00;
         let mut best_price = 0.00;
-        let mut total_maint_margin = 0.00;
         for a in assets {
             let obj = a.as_object().unwrap();
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
-            total_maint_margin = obj.get("totalMaintMargin").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
             let margin_balance:f64 = obj.get("marginBalance").unwrap().as_str().unwrap().parse().unwrap();
 
