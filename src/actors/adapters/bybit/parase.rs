@@ -266,7 +266,7 @@ pub async fn get_futures_bybit_positions(
           let position_side = obj.get("side").unwrap().as_str().unwrap();
           let entry_price = obj.get("avgPrice").unwrap().as_str().unwrap();
           let leverage = obj.get("leverage").unwrap().as_str().unwrap();
-          let mark_price = obj.get("markPrice").unwrap().as_str().unwrap();
+          let mark_price = obj.get("positionIM").unwrap().as_str().unwrap();
           let unrealized_profit = obj.get("unrealisedPnl").unwrap().as_str().unwrap();
 
           
