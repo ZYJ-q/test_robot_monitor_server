@@ -27,9 +27,11 @@ pub async fn get_account_sub(
         let mut total_margin_balance = 0.0;
         let mut new_total_equity = 0.00;
         let mut best_price = 0.00;
+        let mut total_maint_margin = 0.00;
         for a in assets {
             let obj = a.as_object().unwrap();
             let wallet_balance: f64 = obj.get("walletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            total_maint_margin = obj.get("totalMaintMargin").unwrap().as_str().unwrap().parse().unwrap();
             let symbol = obj.get("asset").unwrap().as_str().unwrap();
             let margin_balance:f64 = obj.get("marginBalance").unwrap().as_str().unwrap().parse().unwrap();
 
@@ -149,6 +151,7 @@ pub async fn get_account_sub(
                 available_balance: format!("{}", new_total_balance),
                 tra_venue: format!("Binance"),
                 r#type: format!("Futures"),
+                total_maint_margin: format!("{}", total_maint_margin),
             });
         } else {
             error!("Can't get {} openOrders.", name);
@@ -435,6 +438,7 @@ pub async fn get_papi_account_sub(
         let value: Value = serde_json::from_str(&data).unwrap();
         println!("账户信息{}", value);
         let total_available_balance = value.as_object().unwrap().get("totalAvailableBalance").unwrap().as_str().unwrap();
+        let total_maint_margin: f64 = value.as_object().unwrap().get("accountMaintMargin").unwrap().as_str().unwrap().parse().unwrap();
 
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
@@ -546,6 +550,7 @@ pub async fn get_papi_account_sub(
                 available_balance: format!("{}", total_available_balance),
                 tra_venue: format!("Binance"),
                 r#type: format!("Papi"),
+                total_maint_margin: format!("{}", total_maint_margin),
                 
             });
         } else {

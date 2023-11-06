@@ -23,10 +23,13 @@ pub async fn get_account_bybit(
       let list = assets.get("list").unwrap().as_array().unwrap();
       let mut wallet_balance = "";
       let mut equity = 0.0;
+      let mut total_maint_margin = "";
       
       for a in list {
           let obj = a.as_object().unwrap();
           wallet_balance = obj.get("totalWalletBalance").unwrap().as_str().unwrap();
+          total_maint_margin = obj.get("totalMarginBalance").unwrap().as_str().unwrap();
+          
           equity = obj.get("totalEquity").unwrap().as_str().unwrap().parse().unwrap();
           let assets = obj.get("coin").unwrap().as_array().unwrap();
           for c in assets {
@@ -143,7 +146,8 @@ pub async fn get_account_bybit(
                   open_order_amt: format!("{}", new_open_orders),
                   available_balance: format!("{}", wallet_balance),
                   tra_venue: format!("ByBit"),
-                  r#type: format!("Futures")
+                  r#type: format!("Futures"),
+                    total_maint_margin: format!("{}", total_maint_margin),
               });
 
               } else {
@@ -159,7 +163,8 @@ pub async fn get_account_bybit(
                   open_order_amt: format!("{}", open_orders),
                   available_balance: format!("{}", wallet_balance),
                   tra_venue: format!("ByBit"),
-                  r#type: format!("Futures")
+                  r#type: format!("Futures"),
+                  total_maint_margin: format!("{}", total_maint_margin),
             });
                   
               }
@@ -177,7 +182,9 @@ pub async fn get_account_bybit(
                   open_order_amt: format!("{}", open_order),
                   available_balance: format!("{}", wallet_balance),
                   tra_venue: format!("ByBit"),
-                  r#type: format!("Futures")
+                  r#type: format!("Futures"),
+                  total_maint_margin: format!("{}", total_maint_margin),
+
             });      
           }
       } else {
@@ -192,7 +199,9 @@ pub async fn get_account_bybit(
                   open_order_amt: format!("{}", 0),
                   available_balance: format!("{}", wallet_balance),
                   tra_venue: format!("ByBit"),
-                  r#type: format!("Futures")
+                  r#type: format!("Futures"),
+                  total_maint_margin: format!("{}", total_maint_margin),
+
         });   
       }
     } else {
@@ -207,7 +216,9 @@ pub async fn get_account_bybit(
                   open_order_amt: format!("{}", 0),
                   available_balance: format!("{}", wallet_balance),
                   tra_venue: format!("ByBit"),
-                  r#type: format!("Futures")
+                  r#type: format!("Futures"),
+                  total_maint_margin: format!("{}", total_maint_margin),
+
       });
         
     }

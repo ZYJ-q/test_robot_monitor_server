@@ -670,7 +670,7 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
                                 open_order_amt,
                                 avaliable_balance,
                                 tra_venue,
-                                r#type, total_balance,)| TraderMessage {
+                                r#type, total_balance, total_maint_margin)| TraderMessage {
                                 
                                     id,
                                     tra_id,
@@ -683,6 +683,7 @@ pub fn get_all_traders_message(pool: web::Data<Pool>, account_id: &u64) -> Resul
                                     tra_venue,
                                     r#type,
                                     total_balance,
+                                    total_maint_margin,
                                
                             })
                         },
@@ -1048,7 +1049,7 @@ pub fn get_account_group_tra(
                                     avaliable_balance,
                                     tra_venue,
                                     r#type,
-                                    total_balance,)| TraderMessage {
+                                    total_balance, total_maint_margin)| TraderMessage {
                                     
                                         id,
                                         tra_id,
@@ -1061,6 +1062,7 @@ pub fn get_account_group_tra(
                                         tra_venue,
                                         r#type,
                                         total_balance,
+                                        total_maint_margin,
                                    
                                 })
                             },
@@ -1145,7 +1147,7 @@ pub fn get_detail_account_group_tra(
                           avaliable_balance,
                           tra_venue,
                           r#type,
-                          total_balance,)| TraderMessage {
+                          total_balance ,total_maint_margin,)| TraderMessage {
                                     
                           id,
                           tra_id,
@@ -1158,6 +1160,7 @@ pub fn get_detail_account_group_tra(
                           tra_venue,
                           r#type,
                           total_balance,
+                            total_maint_margin,
                                    
                         })
                     },
@@ -1853,7 +1856,7 @@ pub fn insert_trader_mess (pool: web::Data<Pool>, trader_mes: AccountRe ) -> boo
     for mess in trader_mes.subs {
         println!("穿过来的参数id:{:?}, name:{:?}, equity:{:?}, leverage:{:?}, position:{:?}, open_order_amt:{:?}, avaliable_balance:{:?}, tra_venue:{:?}, type:{:?}, total_balance:{:?}", mess.id, mess.name, mess.total_equity, mess.leverage, mess.position, mess.open_order_amt, mess.available_balance, mess.tra_venue, mess.r#type, mess.total_balance);
         let account = conn.exec_drop(
-            r"insert into copy_trader_mess (tra_id, name, equity, leverage, position, open_order_amt, avaliable_balance, tra_venue, type, total_balance) values (:tra_id, :name, :equity, :leverage, :position, :open_order_amt, :avaliable_balance, :tra_venue, :type, :total_balance)",
+            r"insert into copy_trader_mess (tra_id, name, equity, leverage, position, open_order_amt, avaliable_balance, tra_venue, type, total_balance, total_maint_margin) values (:tra_id, :name, :equity, :leverage, :position, :open_order_amt, :avaliable_balance, :tra_venue, :type, :total_balance, :total_maint_margin)",
             params! {
                 "tra_id" => mess.id,
                 "name" => mess.name,
@@ -1864,7 +1867,8 @@ pub fn insert_trader_mess (pool: web::Data<Pool>, trader_mes: AccountRe ) -> boo
                 "avaliable_balance" => mess.available_balance,
                 "tra_venue" => mess.tra_venue,
                 "type" => mess.r#type,
-                "total_balance" => mess.total_balance
+                "total_balance" => mess.total_balance,
+                "total_maint_margin" => mess.total_maint_margin
             },
         );
     
@@ -2357,7 +2361,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
                 open_order_amt,
                 avaliable_balance,
                 tra_venue,
-                r#type, total_balance,)| TraderMessage {
+                r#type, total_balance, total_maint_margin)| TraderMessage {
                 
                     id,
                     tra_id,
@@ -2370,6 +2374,7 @@ pub fn get_one_traders_message(pool: web::Data<Pool>, tra_id: &str) -> Result<Ve
                     tra_venue,
                     r#type,
                     total_balance,
+                    total_maint_margin,
                
             })
         },

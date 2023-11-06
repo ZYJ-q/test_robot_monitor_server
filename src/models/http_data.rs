@@ -641,7 +641,8 @@ pub struct Sub {
     pub position: String,
     pub tra_venue: String,
     pub r#type: String,
-    pub available_balance: String
+    pub available_balance: String,
+    pub total_maint_margin: String
 }
 
 
