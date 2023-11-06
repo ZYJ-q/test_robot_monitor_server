@@ -20,7 +20,7 @@ pub async fn get_account_sub(
         let value: Value = serde_json::from_str(&data).unwrap();
         // println!("账户信息binance{}", value);
         let assets = value.as_object().unwrap().get("assets").unwrap().as_array().unwrap();
-        let total_maint_margin: f64 = value.as_object().unwrap().get("totalMaintMargin").unwrap().as_str().unwrap().parse().unwrap();
+        let total_maint_margin: f64 = value.as_object().unwrap().get("totalMarginBalance").unwrap().as_str().unwrap().parse().unwrap();
         // if name == "trader02" {
         //     println!(" 账户数据{:?}", assets);
         // }
