@@ -3483,7 +3483,7 @@ pub fn get_alarm_open_orders(pool: web::Data<Pool>) -> Result<Vec<OpenOrders>> {
 }
 
 // 删除挂单监控
-pub fn delect_orders(pool: web::Data<Pool>, name:&str) -> Result<()> {
+pub fn delect_orders(pool: web::Data<Pool>, name:&u64) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
         r"delete from open_orders where name = :name",
@@ -3536,7 +3536,7 @@ pub fn get_alarm_positions(pool: web::Data<Pool>) -> Result<Vec<PositionsAlarm>>
 }
 
 // 删除净头寸监控
-pub fn delect_positions(pool: web::Data<Pool>, name:&str) -> Result<()> {
+pub fn delect_positions(pool: web::Data<Pool>, name:&u64) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
         r"delete from position_alarm where name = :name",
@@ -3694,7 +3694,7 @@ pub fn update_borrow(pool: web::Data<Pool>, name:&str, borrow:&str) -> Result<()
 }
 
 // 删除账户
-pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
+pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&u64, account_id: &u64) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
         r"delete from trader where tra_id = :tra_id",
@@ -3729,7 +3729,7 @@ pub fn delect_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> 
 
 
 // 移除账户
-pub fn remove_accounts(pool: web::Data<Pool>, tra_id:&str, account_id: &str) -> Result<()> {
+pub fn remove_accounts(pool: web::Data<Pool>, tra_id:&u64, account_id: &u64) -> Result<()> {
     let mut conn = pool.get_conn().unwrap();
     let res = conn.exec_drop(
         r"delete from acc_tra where tra_id = :tra_id and acc_id = :acc_id",

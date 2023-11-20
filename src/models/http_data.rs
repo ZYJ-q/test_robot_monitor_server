@@ -444,8 +444,8 @@ pub struct Equity {
 pub struct DelectOrders{
     pub r#type: String,
     pub token: String,
-    pub tra_id: String,
-    pub account_id: String,
+    pub tra_id: u64,
+    pub account_id: u64,
 }
 
 
